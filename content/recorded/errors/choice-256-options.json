@@ -1,0 +1,16 @@
+{
+  "case": "choice-256-options",
+  "expect": "422 — one past the 255 cap",
+  "status": 400,
+  "headers": {
+    "content-length": "61",
+    "content-type": "application/json",
+    "date": "Mon, 21 Sep 2026 12:42:56 GMT",
+    "server": "istio-envoy",
+    "x-envoy-upstream-service-time": "9",
+    "x-typesafe-request-id": "req_01a0c3fdac3b7e07bae4a91aa74149b1"
+  },
+  "body": {
+    "detail": "Too many choices. Must have at most 255 choices."
+  }
+}

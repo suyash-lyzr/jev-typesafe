@@ -1,0 +1,19 @@
+{
+  "case": "bad-model",
+  "expect": "404 or 422 — unknown model id",
+  "status": 400,
+  "headers": {
+    "content-length": "89",
+    "content-type": "application/json",
+    "date": "Mon, 21 Sep 2026 12:42:59 GMT",
+    "server": "istio-envoy",
+    "x-envoy-upstream-service-time": "7",
+    "x-typesafe-request-id": "req_01a0c3fdb8ba74f99fb465a0bbb589b6"
+  },
+  "body": {
+    "detail": {
+      "error_type": "api_usage_error",
+      "message": "Unknown model: jev-does-not-exist"
+    }
+  }
+}

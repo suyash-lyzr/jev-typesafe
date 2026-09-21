@@ -1,0 +1,84 @@
+[data-theme="sage"] {
+  --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
+  --radius: 0.75rem;
+  --background: 0 0% 99%;
+  --foreground: 0 0% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
+  /* PRIMARY = royal black ink (CTA). Teal is the secondary accent (--ring/links). */
+  --primary: 0 0% 9%;
+  --primary-foreground: 0 0% 99%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 10%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 40%;
+  --accent: 0 0% 96%;
+  --accent-foreground: 0 0% 10%;
+  --destructive: 6 63% 46%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 91%;
+  --input: 0 0% 91%;
+  --ring: 169 46% 34%;
+  /* Semantic roles (from tokens.ts) — brand teal + feedback + data viz. */
+  --brand: 169 46% 34%;
+  --brand-soft: 162 36% 95%;
+  --brand-text: 169 47% 28%;
+  --success: 157 67% 37%;
+  --success-soft: 152 44% 92%;
+  --success-text: 157 64% 29%;
+  --warning: 37 61% 47%;
+  --warning-soft: 38 71% 93%;
+  --warning-text: 38 70% 32%;
+  --danger: 6 63% 46%;
+  --danger-soft: 6 67% 94%;
+  --danger-text: 5 71% 34%;
+  --info: 221 83% 53%;
+  --info-soft: 223 84% 95%;
+  --info-text: 221 73% 42%;
+  --dataviz-primary: 40 5% 22%;
+  --dataviz-support: 169 46% 34%;
+  font-family: var(--font-sans);
+}
+[data-theme="sage"].dark {
+  /* Premium royal black (Onyx canvas) + Sage's teal accent. */
+  --background: 240 4% 5%;
+  --foreground: 45 17% 95%;
+  --card: 240 2% 9%;
+  --card-foreground: 45 17% 95%;
+  --popover: 240 2% 9%;
+  --popover-foreground: 45 17% 95%;
+  /* PRIMARY = inverted near-white CTA on black (ink-as-brand). Teal stays the accent. */
+  --primary: 45 13% 95%;
+  --primary-foreground: 240 4% 5%;
+  --secondary: 240 4% 11%;
+  --secondary-foreground: 45 17% 95%;
+  --muted: 240 4% 11%;
+  --muted-foreground: 51 4% 63%;
+  --accent: 240 4% 11%;
+  --accent-foreground: 45 17% 95%;
+  --destructive: 6 63% 46%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 2% 17%;
+  --input: 240 2% 17%;
+  --ring: 165 35% 48%;
+  /* Semantic roles (dark) — brand teal + feedback + data viz. */
+  --brand: 167 38% 45%;
+  --brand-soft: 162 31% 11%;
+  --brand-text: 166 35% 59%;
+  --success: 155 52% 55%;
+  --success-soft: 155 40% 12%;
+  --success-text: 154 59% 66%;
+  --warning: 38 63% 56%;
+  --warning-soft: 37 38% 12%;
+  --warning-text: 39 66% 68%;
+  --danger: 6 68% 62%;
+  --danger-soft: 8 35% 13%;
+  --danger-text: 6 77% 74%;
+  --info: 220 82% 65%;
+  --info-soft: 223 45% 16%;
+  --info-text: 219 84% 76%;
+  --dataviz-primary: 47 10% 83%;
+  --dataviz-support: 167 38% 45%;
+}

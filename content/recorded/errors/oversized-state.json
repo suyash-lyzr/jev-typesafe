@@ -1,0 +1,18 @@
+{
+  "case": "oversized-state",
+  "expect": "422 — past the 32k-token state budget",
+  "status": 400,
+  "headers": {
+    "content-length": "47",
+    "content-type": "application/json",
+    "date": "Mon, 21 Sep 2026 12:43:00 GMT",
+    "server": "istio-envoy",
+    "x-envoy-upstream-service-time": "29",
+    "x-typesafe-request-id": "req_01a0c3fdbcca7d5ea27bdea49c9fac0a"
+  },
+  "body": {
+    "detail": {
+      "error_type": "max_tokens_exceeded"
+    }
+  }
+}

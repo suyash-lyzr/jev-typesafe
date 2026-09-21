@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* The Sage engine, verbatim from the design-system bundle. */
+@import '../styles/sage.css';
+
+/*
+ * sage.css defines --font-sans but not --font-mono, while the Tailwind preset
+ * maps font-mono to var(--font-mono). Without this the mono type scale falls
+ * back to ui-monospace and every probability/token readout loses its alignment.
+ * Fonts are loaded via <link> (not next/font) so the family names match the
+ * literal names sage.css declares.
+ */
+[data-theme='sage'] {
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  /* Sage law: every interactive element gets a visible teal focus ring. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer utilities {
+  /* Numeric readouts: probabilities, tokens, latency, cost. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "case": "missing-instructions",
+  "expect": "422 — required field absent",
+  "status": 400,
+  "headers": {
+    "content-length": "69",
+    "content-type": "application/json",
+    "date": "Mon, 21 Sep 2026 12:42:58 GMT",
+    "server": "istio-envoy",
+    "x-envoy-upstream-service-time": "11",
+    "x-typesafe-request-id": "req_01a0c3fdb2b07847ab2088db36001cfc"
+  },
+  "body": {
+    "detail": "Noul question must have criteria or instructions: urgent"
+  }
+}

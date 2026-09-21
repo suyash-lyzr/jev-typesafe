@@ -1,0 +1,16 @@
+{
+  "case": "empty-instructions",
+  "expect": "422 — instructions carry the whole question",
+  "status": 400,
+  "headers": {
+    "content-length": "69",
+    "content-type": "application/json",
+    "date": "Mon, 21 Sep 2026 12:42:57 GMT",
+    "server": "istio-envoy",
+    "x-envoy-upstream-service-time": "9",
+    "x-typesafe-request-id": "req_01a0c3fdb0b171f8a853c526bc7ed680"
+  },
+  "body": {
+    "detail": "Noul question must have criteria or instructions: urgent"
+  }
+}

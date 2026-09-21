@@ -1,0 +1,35 @@
+{
+  "case": "missing-state",
+  "expect": "422 — state is required",
+  "status": 422,
+  "headers": {
+    "content-length": "194",
+    "content-type": "application/json",
+    "date": "Mon, 21 Sep 2026 12:43:00 GMT",
+    "server": "istio-envoy",
+    "x-envoy-upstream-service-time": "16",
+    "x-typesafe-request-id": "req_01a0c3fdbabb7a9b82a61562a8a3c12c"
+  },
+  "body": {
+    "detail": [
+      {
+        "type": "missing",
+        "loc": [
+          "body",
+          "state"
+        ],
+        "msg": "Field required",
+        "input": {
+          "model": "jev-latest",
+          "questions": {
+            "urgent": {
+              "type": "noul",
+              "instructions": "Is it urgent?",
+              "criteria": null
+            }
+          }
+        }
+      }
+    ]
+  }
+}

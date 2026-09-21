@@ -1,0 +1,16 @@
+{
+  "case": "score-11-levels",
+  "expect": "422 — the docs say 2–10 levels; 11 should be rejected",
+  "status": 400,
+  "headers": {
+    "content-length": "64",
+    "content-type": "application/json",
+    "date": "Mon, 21 Sep 2026 12:42:54 GMT",
+    "server": "istio-envoy",
+    "x-envoy-upstream-service-time": "20",
+    "x-typesafe-request-id": "req_01a0c3fda7ef77078ecf89b7d7e8b903"
+  },
+  "body": {
+    "detail": "Too many score levels. Must have at most 10 levels."
+  }
+}

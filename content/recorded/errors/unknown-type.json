@@ -1,0 +1,19 @@
+{
+  "case": "unknown-type",
+  "expect": "422 — only choice, score and noul exist",
+  "status": 400,
+  "headers": {
+    "content-length": "72",
+    "content-type": "application/json",
+    "date": "Mon, 21 Sep 2026 12:42:58 GMT",
+    "server": "istio-envoy",
+    "x-envoy-upstream-service-time": "10",
+    "x-typesafe-request-id": "req_01a0c3fdb4b97f84a2fb33d466346ab9"
+  },
+  "body": {
+    "detail": {
+      "error_type": "api_usage_error",
+      "message": "Invalid request."
+    }
+  }
+}

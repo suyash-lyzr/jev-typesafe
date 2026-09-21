@@ -1,0 +1,33 @@
+{
+  "case": "score-1-level",
+  "expect": "422 — below the 2-level minimum",
+  "status": 200,
+  "headers": {
+    "content-length": "187",
+    "content-type": "application/json",
+    "date": "Mon, 21 Sep 2026 12:42:56 GMT",
+    "server": "istio-envoy",
+    "x-envoy-upstream-service-time": "56",
+    "x-typesafe-request-id": "req_01a0c3fdaa03733d81bfadf07f90da3a"
+  },
+  "body": {
+    "model": "jev-1.13.0",
+    "answers": {
+      "severity": {
+        "type": "score",
+        "score": 0,
+        "confidence": 1,
+        "legend": {
+          "0": "only"
+        },
+        "probabilities": {
+          "0": 1
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 287,
+      "output_tokens": 17
+    }
+  }
+}

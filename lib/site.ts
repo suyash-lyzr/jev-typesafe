@@ -1,0 +1,23 @@
+/** One constant so the name can be swapped in minutes if legal asks. */
+export const SITE = {
+  name: 'Jev Lab',
+  byline: 'by Lyzr',
+  fullName: 'Jev Lab by Lyzr',
+  tagline: "Jev doesn't write. It decides.",
+  description:
+    "An open playground and course for TypeSafe AI's Jev: send a state and typed questions, read the probabilities, turn them into policy.",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+  /** Printed next to latency so nobody reads it as TypeSafe's compute time. */
+  region: process.env.NEXT_PUBLIC_SITE_REGION ?? 'iad1',
+  disclaimer:
+    'Not affiliated with or endorsed by TypeSafe AI. "Jev" and "TypeSafe" are their names.',
+  provenance:
+    'Numbers here are single runs (live) or recorded from docs.typesafe.ai with model id and date. They are not benchmarks.',
+  links: {
+    docs: 'https://docs.typesafe.ai',
+    console: 'https://console.typesafe.ai',
+    pythonSdk: 'https://docs.typesafe.ai/sdk/python',
+    jsSdk: 'https://docs.typesafe.ai/sdk/javascript',
+    jaggedness: 'https://docs.typesafe.ai/model-jaggedness/jev-1.13',
+  },
+} as const

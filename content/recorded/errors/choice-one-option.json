@@ -1,0 +1,30 @@
+{
+  "case": "choice-one-option",
+  "expect": "422 — a Choice needs at least two options",
+  "status": 200,
+  "headers": {
+    "content-length": "169",
+    "content-type": "application/json",
+    "date": "Mon, 21 Sep 2026 12:42:57 GMT",
+    "server": "istio-envoy",
+    "x-envoy-upstream-service-time": "115",
+    "x-typesafe-request-id": "req_01a0c3fdae45787b9b1d844ca91117df"
+  },
+  "body": {
+    "model": "jev-1.13.0",
+    "answers": {
+      "pick": {
+        "type": "choice",
+        "choice": "only",
+        "confidence": 1,
+        "probabilities": {
+          "only": 1
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 284,
+      "output_tokens": 24
+    }
+  }
+}

@@ -1,0 +1,83 @@
+[
+  {
+    "case": "score-11-levels",
+    "status": 400,
+    "keys": [
+      "detail"
+    ]
+  },
+  {
+    "case": "score-1-level",
+    "status": 200,
+    "keys": [
+      "model",
+      "answers",
+      "usage"
+    ]
+  },
+  {
+    "case": "choice-256-options",
+    "status": 400,
+    "keys": [
+      "detail"
+    ]
+  },
+  {
+    "case": "choice-one-option",
+    "status": 200,
+    "keys": [
+      "model",
+      "answers",
+      "usage"
+    ]
+  },
+  {
+    "case": "empty-instructions",
+    "status": 400,
+    "keys": [
+      "detail"
+    ]
+  },
+  {
+    "case": "missing-instructions",
+    "status": 400,
+    "keys": [
+      "detail"
+    ]
+  },
+  {
+    "case": "unknown-type",
+    "status": 400,
+    "keys": [
+      "detail"
+    ]
+  },
+  {
+    "case": "no-questions",
+    "status": 422,
+    "keys": [
+      "detail"
+    ]
+  },
+  {
+    "case": "bad-model",
+    "status": 400,
+    "keys": [
+      "detail"
+    ]
+  },
+  {
+    "case": "missing-state",
+    "status": 422,
+    "keys": [
+      "detail"
+    ]
+  },
+  {
+    "case": "oversized-state",
+    "status": 400,
+    "keys": [
+      "detail"
+    ]
+  }
+]
