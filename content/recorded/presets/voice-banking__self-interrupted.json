@@ -1,0 +1,49 @@
+{
+  "preset": "voice-banking",
+  "variant": "self-interrupted",
+  "recordedAt": "2026-09-21T19:02:13.328Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "uh, transfer... actually wait, how much do I have first?",
+    "model": "jev-latest",
+    "questions": {
+      "intent": {
+        "type": "choice",
+        "instructions": "What is the user trying to do?",
+        "criteria": {
+          "check_balance": "View account balance",
+          "approve_transfer": "Approve the pending withdrawal request",
+          "support": "Get help with an issue",
+          "other": "None of the above"
+        }
+      },
+      "mentions_amount": {
+        "type": "noul",
+        "instructions": "The user names a specific sum of money"
+      }
+    }
+  },
+  "answers": {
+    "intent": {
+      "type": "choice",
+      "choice": "check_balance",
+      "confidence": 1,
+      "probabilities": {
+        "support": 0,
+        "approve_transfer": 0,
+        "check_balance": 1,
+        "other": 0
+      }
+    },
+    "mentions_amount": {
+      "type": "noul",
+      "noul": 0.03
+    }
+  },
+  "usage": {
+    "input_tokens": 377,
+    "output_tokens": 66
+  },
+  "costUsd": 0.000015834,
+  "clientMs": 432
+}

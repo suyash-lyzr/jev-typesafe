@@ -25,7 +25,9 @@ export function toWireRequest(editor: EditorRequest): JevRequest {
   const questions: Record<string, Question> = {}
 
   for (const [id, q] of Object.entries(editor.questions)) {
-    const variant = editor.variants[id]
+    // Own properties only: a question called `constructor` must not pick up
+    // Object.prototype.constructor as its "variant".
+    const variant = Object.hasOwn(editor.variants, id) ? editor.variants[id] : undefined
     if (variant) {
       questions[`${id}${VARIANT_A}`] = q
       questions[`${id}${VARIANT_B}`] = variant

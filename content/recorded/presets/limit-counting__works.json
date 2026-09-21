@@ -1,0 +1,203 @@
+{
+  "preset": "limit-counting",
+  "variant": "works",
+  "recordedAt": "2026-09-21T20:08:59.948Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "items": [
+        "kiwi",
+        "table",
+        "mango",
+        "river",
+        "plum",
+        "laptop",
+        "grape",
+        "cloud",
+        "lemon",
+        "pencil",
+        "cherry",
+        "piano",
+        "peach",
+        "candle",
+        "fig",
+        "bottle",
+        "lime",
+        "ladder",
+        "pear",
+        "window"
+      ]
+    },
+    "model": "jev-latest",
+    "questions": {
+      "item_0": {
+        "type": "noul",
+        "instructions": "Is `items[0]` the name of a fruit?"
+      },
+      "item_1": {
+        "type": "noul",
+        "instructions": "Is `items[1]` the name of a fruit?"
+      },
+      "item_2": {
+        "type": "noul",
+        "instructions": "Is `items[2]` the name of a fruit?"
+      },
+      "item_3": {
+        "type": "noul",
+        "instructions": "Is `items[3]` the name of a fruit?"
+      },
+      "item_4": {
+        "type": "noul",
+        "instructions": "Is `items[4]` the name of a fruit?"
+      },
+      "item_5": {
+        "type": "noul",
+        "instructions": "Is `items[5]` the name of a fruit?"
+      },
+      "item_6": {
+        "type": "noul",
+        "instructions": "Is `items[6]` the name of a fruit?"
+      },
+      "item_7": {
+        "type": "noul",
+        "instructions": "Is `items[7]` the name of a fruit?"
+      },
+      "item_8": {
+        "type": "noul",
+        "instructions": "Is `items[8]` the name of a fruit?"
+      },
+      "item_9": {
+        "type": "noul",
+        "instructions": "Is `items[9]` the name of a fruit?"
+      },
+      "item_10": {
+        "type": "noul",
+        "instructions": "Is `items[10]` the name of a fruit?"
+      },
+      "item_11": {
+        "type": "noul",
+        "instructions": "Is `items[11]` the name of a fruit?"
+      },
+      "item_12": {
+        "type": "noul",
+        "instructions": "Is `items[12]` the name of a fruit?"
+      },
+      "item_13": {
+        "type": "noul",
+        "instructions": "Is `items[13]` the name of a fruit?"
+      },
+      "item_14": {
+        "type": "noul",
+        "instructions": "Is `items[14]` the name of a fruit?"
+      },
+      "item_15": {
+        "type": "noul",
+        "instructions": "Is `items[15]` the name of a fruit?"
+      },
+      "item_16": {
+        "type": "noul",
+        "instructions": "Is `items[16]` the name of a fruit?"
+      },
+      "item_17": {
+        "type": "noul",
+        "instructions": "Is `items[17]` the name of a fruit?"
+      },
+      "item_18": {
+        "type": "noul",
+        "instructions": "Is `items[18]` the name of a fruit?"
+      },
+      "item_19": {
+        "type": "noul",
+        "instructions": "Is `items[19]` the name of a fruit?"
+      }
+    }
+  },
+  "answers": {
+    "item_0": {
+      "type": "noul",
+      "noul": 1
+    },
+    "item_1": {
+      "type": "noul",
+      "noul": 0.01
+    },
+    "item_2": {
+      "type": "noul",
+      "noul": 1
+    },
+    "item_3": {
+      "type": "noul",
+      "noul": 0.01
+    },
+    "item_4": {
+      "type": "noul",
+      "noul": 0.99
+    },
+    "item_5": {
+      "type": "noul",
+      "noul": 0.01
+    },
+    "item_6": {
+      "type": "noul",
+      "noul": 0.99
+    },
+    "item_7": {
+      "type": "noul",
+      "noul": 0.01
+    },
+    "item_8": {
+      "type": "noul",
+      "noul": 0.98
+    },
+    "item_9": {
+      "type": "noul",
+      "noul": 0.01
+    },
+    "item_10": {
+      "type": "noul",
+      "noul": 0.98
+    },
+    "item_11": {
+      "type": "noul",
+      "noul": 0.01
+    },
+    "item_12": {
+      "type": "noul",
+      "noul": 0.98
+    },
+    "item_13": {
+      "type": "noul",
+      "noul": 0.02
+    },
+    "item_14": {
+      "type": "noul",
+      "noul": 0.96
+    },
+    "item_15": {
+      "type": "noul",
+      "noul": 0.02
+    },
+    "item_16": {
+      "type": "noul",
+      "noul": 0.91
+    },
+    "item_17": {
+      "type": "noul",
+      "noul": 0.02
+    },
+    "item_18": {
+      "type": "noul",
+      "noul": 0.93
+    },
+    "item_19": {
+      "type": "noul",
+      "noul": 0.01
+    }
+  },
+  "usage": {
+    "input_tokens": 770,
+    "output_tokens": 374
+  },
+  "costUsd": 0.000032340000000000005,
+  "clientMs": 331
+}

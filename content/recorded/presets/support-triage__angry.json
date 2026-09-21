@@ -1,0 +1,125 @@
+{
+  "preset": "support-triage",
+  "variant": "angry",
+  "recordedAt": "2026-09-21T19:02:10.974Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "This is the third time I am writing and I am done being polite. You sent me a size 7 when I ordered a 9 — how is that even possible — and then you helped yourselves to the money TWICE. Two identical charges sitting on my statement for over a week while your support team says nothing. Fix this today or I ring my bank and raise a chargeback, and then I will tell everyone I know exactly how you operate.",
+    "model": "jev-latest",
+    "questions": {
+      "department": {
+        "type": "choice",
+        "instructions": "Which team should handle this?",
+        "criteria": {
+          "returns": "Exchanges, wrong or damaged items",
+          "shipping": "Delivery status, delays, lost packages",
+          "billing": "Charges, invoices, payment problems"
+        }
+      },
+      "return_reason": {
+        "type": "choice",
+        "instructions": "If the customer wants to return something, why?",
+        "criteria": {
+          "wrong_size": "The item doesn't fit",
+          "wrong_item": "A different product was delivered",
+          "damaged": "The item arrived broken or faulty",
+          "changed_mind": "The item is fine, the customer no longer wants it",
+          "other": "A return reason that fits none of the above"
+        }
+      },
+      "shipping_issue": {
+        "type": "choice",
+        "instructions": "If this is a shipping problem, which kind is it?",
+        "criteria": {
+          "not_delivered": "The package never arrived",
+          "delayed": "The package is late but still on its way",
+          "wrong_address": "The package went to the wrong place",
+          "damaged_in_transit": "The package arrived damaged",
+          "other": "A shipping problem that fits none of the above"
+        }
+      },
+      "requested_resolution": {
+        "type": "choice",
+        "instructions": "What does the customer want to happen?",
+        "criteria": {
+          "exchange": "Swap the item for a different one",
+          "refund": "Money back",
+          "replacement": "The same item sent again",
+          "information": "Just an answer, no action needed"
+        }
+      },
+      "tone": {
+        "type": "choice",
+        "instructions": "What is the customer's tone?",
+        "criteria": {
+          "calm": null,
+          "frustrated": null,
+          "angry": null
+        }
+      }
+    }
+  },
+  "answers": {
+    "department": {
+      "type": "choice",
+      "choice": "billing",
+      "confidence": 0.96,
+      "probabilities": {
+        "shipping": 0,
+        "billing": 0.97,
+        "returns": 0.03
+      }
+    },
+    "return_reason": {
+      "type": "choice",
+      "choice": "wrong_size",
+      "confidence": 0.99,
+      "probabilities": {
+        "damaged": 0,
+        "other": 0,
+        "wrong_item": 0,
+        "wrong_size": 1,
+        "changed_mind": 0
+      }
+    },
+    "shipping_issue": {
+      "type": "choice",
+      "choice": "other",
+      "confidence": 1,
+      "probabilities": {
+        "delayed": 0,
+        "other": 1,
+        "not_delivered": 0,
+        "damaged_in_transit": 0,
+        "wrong_address": 0
+      }
+    },
+    "requested_resolution": {
+      "type": "choice",
+      "choice": "refund",
+      "confidence": 0.62,
+      "probabilities": {
+        "refund": 0.71,
+        "information": 0,
+        "replacement": 0.13,
+        "exchange": 0.16
+      }
+    },
+    "tone": {
+      "type": "choice",
+      "choice": "angry",
+      "confidence": 0.97,
+      "probabilities": {
+        "frustrated": 0.02,
+        "angry": 0.98,
+        "calm": 0
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 807,
+    "output_tokens": 235
+  },
+  "costUsd": 0.000033894000000000004,
+  "clientMs": 429
+}

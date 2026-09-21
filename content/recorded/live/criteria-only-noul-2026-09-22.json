@@ -1,0 +1,7 @@
+{
+  "note": "Verifies that a Noul with true/false criteria and no instructions is accepted. The API's own error text ('Noul question must have criteria or instructions') implied it; this run confirms it.",
+  "date": "2026-09-22",
+  "request": { "state": "I have asked three times now. Can I please just talk to a real person?", "model": "jev-latest", "questions": { "repeat": { "type": "noul", "criteria": { "true": "Mentions a prior attempt, ticket, or that they have asked before", "false": "No sign of any previous contact" } } } },
+  "status": 200,
+  "response": {"model":"jev-1.13.0","answers":{"repeat":{"type":"noul","noul":0.9}},"usage":{"input_tokens":314,"output_tokens":20}}
+}

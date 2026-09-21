@@ -45,7 +45,9 @@ export const voiceBanking: Preset = {
 
   policy: {
     rules: [
-      // The docs gate one action at 0.9 and another at 0.6 off the same answer.
+      // Two docs pages gate this: docs.typesafe.ai/confidence puts a 0.5 floor
+      // under everything and 0.9 on approving a transfer; the confidence-routing
+      // pattern page uses 0.6 for checking a balance and 0.85 for a transfer.
       // A band rule carries one pair, so this is the money bar: act at 0.9,
       // and the 0.5 floor below which everything goes to a person. Drag review
       // to 0.6 to see the read-only bar instead — the answer does not move.

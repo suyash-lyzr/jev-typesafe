@@ -1,0 +1,75 @@
+{
+  "preset": "model-routing",
+  "variant": "product-fit",
+  "recordedAt": "2026-09-21T19:02:15.640Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "I have the 13-inch model from two years ago — will the new keyboard case fit it, or is it only for the current size?",
+    "model": "jev-latest",
+    "questions": {
+      "intent": {
+        "type": "choice",
+        "instructions": "What is the customer asking about?",
+        "criteria": {
+          "order_status": "Where an order is, when it will arrive, or whether it shipped",
+          "product_question": "A question about what a product is, does, or fits",
+          "return_exchange": "Sending something back, swapping it, or asking how to",
+          "complaint": "Dissatisfaction with an order, a product or the service itself",
+          "other": "Anything that fits none of the above"
+        }
+      },
+      "complexity": {
+        "type": "score",
+        "instructions": "How much work does resolving this message take?",
+        "criteria": [
+          "Answerable by a lookup",
+          "Needs judgment or a few exchanges",
+          "Needs an exception or a human decision"
+        ]
+      },
+      "wants_human": {
+        "type": "noul",
+        "instructions": "Is the customer asking to speak to a person?"
+      }
+    }
+  },
+  "answers": {
+    "intent": {
+      "type": "choice",
+      "choice": "product_question",
+      "confidence": 1,
+      "probabilities": {
+        "complaint": 0,
+        "order_status": 0,
+        "product_question": 1,
+        "return_exchange": 0,
+        "other": 0
+      }
+    },
+    "complexity": {
+      "type": "score",
+      "score": 0.22,
+      "confidence": 0.67,
+      "legend": {
+        "0": "Answerable by a lookup",
+        "1": "Needs judgment or a few exchanges",
+        "2": "Needs an exception or a human decision"
+      },
+      "probabilities": {
+        "0": 0.79,
+        "1": 0.2,
+        "2": 0.01
+      }
+    },
+    "wants_human": {
+      "type": "noul",
+      "noul": 0.02
+    }
+  },
+  "usage": {
+    "input_tokens": 504,
+    "output_tokens": 92
+  },
+  "costUsd": 0.000021168,
+  "clientMs": 332
+}

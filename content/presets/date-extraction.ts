@@ -156,7 +156,7 @@ export const dateExtraction: Preset = {
       id: 'next-thursday',
       label: 'Relative — "next Thursday"',
       description:
-        'The message behind the cookbook\'s playground link. Nothing here names a month, so mode should read relative, day_anchor weekday, and the week_offset answer decides which Thursday. With TODAY pinned to 2026-07-30 the cookbook resolves this to 2026-08-06 at confidence 0.92.',
+        'The message behind the cookbook\'s playground link. Nothing here names a month, so mode should read relative, day_anchor weekday, and the week_offset answer decides which Thursday. With TODAY pinned to 2026-07-30 the cookbook resolves this to 2026-08-06 at confidence 0.92. (The cookbook asked with a 1900–2050 year list; this preset offers 2024–2030 to stay readable, so its confidence is a reference, not a prediction.)',
       state: "Let's schedule the design review for next Thursday.",
       recorded: null,
     },
@@ -164,7 +164,7 @@ export const dateExtraction: Preset = {
       id: 'form-deadline',
       label: 'Absolute — no year stated',
       description:
-        'August 14 with no year. `year` should come back none, and code fills in the current year, moving to the next only when the date is already more than a month past. The cookbook resolves this to 2026-08-14 at confidence 0.95.',
+        'August 14 with no year. `year` should come back none, and code fills in the current year, moving to the next only when the date is already more than a month past. The cookbook resolves this to 2026-08-14 at confidence 0.95. (The cookbook asked with a 1900–2050 year list; this preset offers 2024–2030 to stay readable, so its confidence is a reference, not a prediction.)',
       state: 'Please return the signed form by August 14.',
       questions: dateQuestions('the deadline to return the form'),
       recorded: null,
@@ -173,7 +173,7 @@ export const dateExtraction: Preset = {
       id: 'contract-two-dates',
       label: 'Two dates, one asked for',
       description:
-        'The state states two dates and the role phrase picks between them: this run asks for the effective date, 2025-01-01, not the expiry. Change "takes effect" to "expires" in the instructions and the same seven questions read 2027-12-31 instead — the cookbook gets 0.97 and 0.91 respectively.',
+        'The state states two dates and the role phrase picks between them: this run asks for the effective date, 2025-01-01, not the expiry. Change "takes effect" to "expires" in the instructions and the same seven questions read 2027-12-31 instead — the cookbook gets 0.97 and 0.91 respectively. (The cookbook asked with a 1900–2050 year list; this preset offers 2024–2030 to stay readable, so its confidence is a reference, not a prediction.)',
       state: 'This agreement is effective January 1, 2025 and expires December 31, 2027.',
       questions: dateQuestions('the date the agreement takes effect'),
       recorded: null,
@@ -182,7 +182,7 @@ export const dateExtraction: Preset = {
       id: 'never-mentioned',
       label: 'The date that is not there',
       description:
-        'The form mentions a date, just not this one. The cookbook records mode coming back absolute with no month to go with it, which code reports as "absolute date incomplete" at confidence 0.46 — under the 0.60 gate, so it goes to a person rather than out as a guess.',
+        'The form mentions a date, just not this one. The cookbook records mode coming back absolute with no month to go with it, which code reports as "absolute date incomplete" at confidence 0.46 — under the 0.60 gate, so it goes to a person rather than out as a guess. (The cookbook asked with a 1900–2050 year list; this preset offers 2024–2030 to stay readable, so its confidence is a reference, not a prediction.)',
       state: 'Please return the signed form by August 14.',
       questions: dateQuestions('the date of the kickoff call'),
       recorded: null,

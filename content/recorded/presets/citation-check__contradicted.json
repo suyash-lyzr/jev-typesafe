@@ -1,0 +1,42 @@
+{
+  "preset": "citation-check",
+  "variant": "contradicted",
+  "recordedAt": "2026-09-21T19:02:20.079Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "claim": "Every JWT must include an expiration time; a token without \"exp\" is not valid.",
+      "section": "4.1.4.  \"exp\" (Expiration Time) Claim\n\n   The \"exp\" (expiration time) claim identifies the expiration time on\n   or after which the JWT MUST NOT be accepted for processing.  The\n   processing of the \"exp\" claim requires that the current date/time\n   MUST be before the expiration date/time listed in the \"exp\" claim.\n\n   Implementers MAY provide for some small leeway, usually no more than\n   a few minutes, to account for clock skew.  Its value MUST be a number\n   containing a NumericDate value.  Use of this claim is OPTIONAL."
+    },
+    "model": "jev-latest",
+    "questions": {
+      "relation": {
+        "type": "choice",
+        "instructions": "How does the section relate to the claim?",
+        "criteria": {
+          "supports": "The section states the claim or directly implies that it is true",
+          "contradicts": "The section states the opposite of the claim or implies it is false",
+          "says_nothing": "The section does not address what the claim asserts, either way"
+        }
+      }
+    }
+  },
+  "answers": {
+    "relation": {
+      "type": "choice",
+      "choice": "contradicts",
+      "confidence": 1,
+      "probabilities": {
+        "contradicts": 1,
+        "supports": 0,
+        "says_nothing": 0
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 526,
+    "output_tokens": 46
+  },
+  "costUsd": 0.000022092,
+  "clientMs": 338
+}

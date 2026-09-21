@@ -1,0 +1,49 @@
+{
+  "preset": "voice-banking",
+  "variant": "transfer",
+  "recordedAt": "2026-09-21T19:02:12.494Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "move two thousand from savings to checking",
+    "model": "jev-latest",
+    "questions": {
+      "intent": {
+        "type": "choice",
+        "instructions": "What is the user trying to do?",
+        "criteria": {
+          "check_balance": "View account balance",
+          "approve_transfer": "Approve the pending withdrawal request",
+          "support": "Get help with an issue",
+          "other": "None of the above"
+        }
+      },
+      "mentions_amount": {
+        "type": "noul",
+        "instructions": "The user names a specific sum of money"
+      }
+    }
+  },
+  "answers": {
+    "intent": {
+      "type": "choice",
+      "choice": "other",
+      "confidence": 0.68,
+      "probabilities": {
+        "other": 0.76,
+        "check_balance": 0,
+        "approve_transfer": 0.24,
+        "support": 0
+      }
+    },
+    "mentions_amount": {
+      "type": "noul",
+      "noul": 0.98
+    }
+  },
+  "usage": {
+    "input_tokens": 370,
+    "output_tokens": 65
+  },
+  "costUsd": 0.00001554,
+  "clientMs": 351
+}

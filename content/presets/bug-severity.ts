@@ -163,8 +163,7 @@ export const bugSeverity: Preset = {
             probabilities: { '0': 0.0, '1': 0.57, '2': 0.43 },
           },
         },
-        usage: { input_tokens: 332, output_tokens: 18 },
-        note: 'Adding an examples array that matches this report ("export fails in one browser but works in another") moves the same ticket to 1.03 at confidence 0.96; an unrelated example leaves it at 1.43 / 0.35. Higher confidence does not establish which answer is right.',
+        note: 'The docs\' 332-token count was for a request with this one question; this preset also asks report_quality, so no token count is shown. Adding an examples array that matches this report ("export fails in one browser but works in another") moves the same ticket to 1.03 at confidence 0.96; an unrelated example leaves it at 1.43 / 0.35. Higher confidence does not establish which answer is right.',
       },
     },
     {

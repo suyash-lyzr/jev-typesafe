@@ -50,9 +50,33 @@ export const QUESTION_ID_RE = /^[A-Za-z0-9_-]{1,64}$/
 /** The A/B mechanism appends __A / __B on the wire. */
 export const WIRE_QUESTION_ID_RE = /^[A-Za-z0-9_-]{1,64}(__[AB])?$/
 
+/**
+ * An id the editor will accept. The `__A` / `__B` suffixes are reserved for
+ * the A/B mechanism on the wire: a question named `sev__A` would silently
+ * replace the A side of a question called `sev`.
+ */
+/** Ids that would collide with Object.prototype when used as plain-object keys. */
+const RESERVED_IDS = new Set(['__proto__', 'constructor', 'prototype'])
+
+export function isEditorQuestionId(id: string): boolean {
+  return QUESTION_ID_RE.test(id) && !/__[AB]$/.test(id) && !RESERVED_IDS.has(id)
+}
+
+export const EditorQuestionId = z.string().refine(isEditorQuestionId, {
+  message: 'Use letters, digits, _ or -, up to 64 characters, not ending in __A or __B, and not __proto__, constructor or prototype.',
+})
+
 /** Aliases move; versioned ids are accepted whether or not /v1/models lists them. */
 export const MODEL_RE = /^jev-[a-z0-9.\-]{1,32}$/
 export const DEFAULT_MODEL = 'jev-latest'
+
+/**
+ * The model ids offered in the picker. Any `jev-*` id may be sent to
+ * /api/jev — an unknown one is rejected by TypeSafe in milliseconds and costs
+ * nothing — but a comparison also spends on OpenAI, so it only accepts these.
+ */
+export const KNOWN_MODELS = ['jev-latest', 'jev-1.13.0', 'jev-preview'] as const
+export const COMPARE_MODELS: readonly string[] = KNOWN_MODELS
 
 // ---------------------------------------------------------------------------
 // Questions
@@ -252,7 +276,7 @@ export interface RunError {
 
 /** Rough token estimate for the editor's live readout. Always shown with a ≈. */
 export function estimateTokens(value: unknown): number {
-  const text = typeof value === 'string' ? value : JSON.stringify(value ?? '')
+  const text = typeof value === 'string' ? value : (JSON.stringify(value ?? '') ?? '')
   return Math.ceil(text.length / 4)
 }
 

@@ -3,6 +3,7 @@ import { Redis } from '@upstash/redis'
 import { Ratelimit } from '@upstash/ratelimit'
 import { createHash } from 'node:crypto'
 import { PRICING } from './pricing'
+import { clientIp, isAllowedOrigin, normaliseIp, originPolicyFromEnv } from './net'
 
 /**
  * Abuse and spend guards for the public proxy.
@@ -10,15 +11,18 @@ import { PRICING } from './pricing'
  * Lyzr's key pays for every anonymous run, so this module is the only thing
  * between a curious visitor and a drained budget. On Vercel Hobby there is no
  * Firewall, so all of it is app-level.
+ *
+ * Every Redis call is bounded and caught. A slow or failing counter store must
+ * never be read as "allowed": on doubt, we refuse to spend.
  */
 
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
 
-const num = (v: string | undefined, fallback: number) => {
+export const num = (v: string | undefined, fallback: number) => {
   const n = Number(v)
-  return Number.isFinite(n) && n > 0 ? n : fallback
+  return v !== undefined && v.trim() !== '' && Number.isFinite(n) && n > 0 ? n : fallback
 }
 
 export const LIMITS = {
@@ -38,11 +42,16 @@ export const LIMITS = {
   },
 } as const
 
-/** Output allowance for the OpenAI pre-flight reserve; reconciled after the call. */
-const OPENAI_OUTPUT_ALLOWANCE_TOKENS = 400
+/** Output allowance for the OpenAI pre-flight reserve; matches max_completion_tokens. */
+export const OPENAI_MAX_OUTPUT_TOKENS = 400
 const LOW_BUDGET_FRACTION = 0.8
 
+/** Upstash calls must not eat the 10s function budget. */
+const REDIS_TIMEOUT_MS = 800
+
 export const KILL_SWITCH = process.env.JEVLAB_KILL_SWITCH === '1'
+
+const isProduction = process.env.NODE_ENV === 'production'
 
 // ---------------------------------------------------------------------------
 // Redis
@@ -52,12 +61,31 @@ const hasRedis = Boolean(
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
 )
 
-export const redis = hasRedis ? Redis.fromEnv() : null
+export const redis = hasRedis
+  ? Redis.fromEnv({
+      // The default retries five times with exponential backoff, which alone can
+      // outlast the function. One quick retry, then give up and fail closed.
+      retry: { retries: 1, backoff: () => 50 },
+    })
+  : null
+
+export const redisAvailable = hasRedis
+
+/** Resolves with the value, or rejects once the deadline passes. */
+function withTimeout<T>(promise: Promise<T>, ms = REDIS_TIMEOUT_MS): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('redis timeout')), ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
 
 /** Blocked callers cost zero Redis commands on their repeat attempts. */
 const ephemeralCache = new Map<string, number>()
 
-function limiter(tokens: number, window: `${number} s` | `${number} m` | `${number} h` | `${number} d`, prefix: string) {
+type Window = `${number} s` | `${number} m` | `${number} h` | `${number} d`
+
+function limiter(tokens: number, window: Window, prefix: string) {
   if (!redis) return null
   return new Ratelimit({
     redis,
@@ -65,6 +93,7 @@ function limiter(tokens: number, window: `${number} s` | `${number} m` | `${numb
     prefix: `jevlab:${prefix}`,
     ephemeralCache,
     analytics: false,
+    timeout: REDIS_TIMEOUT_MS,
   })
 }
 
@@ -84,39 +113,31 @@ const limiters = {
 // ---------------------------------------------------------------------------
 
 /**
- * Never trust the client-settable first element of x-forwarded-for. Vercel
- * sets x-real-ip itself. IPv6 is bucketed to the /64 because a single host is
- * handed the whole prefix and could otherwise rotate through it freely.
+ * The salt must be secret, or the hashed IPs are trivially reversible (IPv4
+ * has only four billion values). An unset IP_HASH_SALT used to fall back to a
+ * constant published in this repository. Now it falls back to a hash of the
+ * TypeSafe key — secret and stable across instances — and warns once.
  */
-export function callerKey(headers: Headers): string {
-  const raw =
-    headers.get('x-real-ip') ??
-    headers.get('x-vercel-forwarded-for') ??
-    headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    'unknown'
+const SALT = (() => {
+  const explicit = process.env.IP_HASH_SALT?.trim()
+  if (explicit) return explicit
+  if (isProduction) {
+    console.warn(JSON.stringify({ at: 'guards', warning: 'IP_HASH_SALT is unset; deriving one from the API key' }))
+  }
+  const seed = process.env.TYPESAFE_API_KEY ?? 'jevlab-local-development'
+  return createHash('sha256').update(`jevlab-salt:${seed}`).digest('hex')
+})()
 
-  const ip = raw.includes(':') ? raw.split(':').slice(0, 4).join(':') : raw
-  const salt = process.env.IP_HASH_SALT ?? 'jevlab-dev-salt'
-  return createHash('sha256').update(ip + salt).digest('hex').slice(0, 32)
+export function callerKey(headers: Headers): string {
+  const ip = normaliseIp(clientIp(headers))
+  return createHash('sha256').update(`${ip}|${SALT}`).digest('hex').slice(0, 32)
 }
 
-/**
- * Cheap origin gate. curl can spoof it, so it is not a security boundary —
- * it stops embedding and casual scraping of a free Jev proxy.
- */
+const ORIGIN_POLICY = originPolicyFromEnv(process.env)
+
+/** See lib/net.ts: a gate against embedding, not a security boundary. */
 export function isSameOrigin(req: Request): boolean {
-  const site = req.headers.get('sec-fetch-site')
-  if (site && site !== 'same-origin' && site !== 'none') return false
-
-  const origin = req.headers.get('origin')
-  if (!origin) return true // same-origin form posts and server-side prefetches omit it
-
-  try {
-    const host = req.headers.get('host')
-    return new URL(origin).host === host
-  } catch {
-    return false
-  }
+  return isAllowedOrigin(req.headers, ORIGIN_POLICY)
 }
 
 // ---------------------------------------------------------------------------
@@ -127,8 +148,9 @@ export interface LimitVerdict {
   ok: boolean
   scope?: 'minute' | 'day' | 'global'
   retryAfterSec?: number
-  remaining?: number
   resetAt?: number
+  /** Set when the limiter could not be consulted; the caller fails closed. */
+  unavailable?: boolean
 }
 
 const secondsUntil = (reset: number) => Math.max(1, Math.ceil((reset - Date.now()) / 1000))
@@ -137,30 +159,35 @@ export async function checkRateLimits(
   key: string,
   feature: 'play' | 'compare'
 ): Promise<LimitVerdict> {
-  // Local dev without Redis: allow, so the app runs with no external service.
-  if (!redis) return { ok: true }
+  if (!redis) {
+    // Local development runs with no external service. In production the
+    // spend reservation fails closed a moment later anyway.
+    return { ok: true }
+  }
 
-  const globalMin = feature === 'compare' ? limiters.globalCompareMin : limiters.globalJevMin
-  const globalDay = feature === 'compare' ? limiters.globalCompareDay : limiters.globalJevDay
-  const perMin = feature === 'compare' ? limiters.compareMin : limiters.playMin
-  const perDay = feature === 'compare' ? limiters.compareDay : limiters.playDay
+  const c = feature === 'compare'
+  // Per-caller windows first. Checking the global ones first let a single
+  // blocked caller drain everyone's shared quota with requests it was never
+  // going to be served.
+  const order = [
+    ['minute', c ? limiters.compareMin : limiters.playMin, key],
+    ['day', c ? limiters.compareDay : limiters.playDay, key],
+    ['global', c ? limiters.globalCompareMin : limiters.globalJevMin, 'all'],
+    ['global', c ? limiters.globalCompareDay : limiters.globalJevDay, 'all'],
+  ] as const
 
-  for (const [scope, lim, id] of [
-    ['global', globalMin, 'all'],
-    ['global', globalDay, 'all'],
-    ['minute', perMin, key],
-    ['day', perDay, key],
-  ] as const) {
+  for (const [scope, lim, id] of order) {
     if (!lim) continue
-    const res = await lim.limit(id)
-    if (!res.success) {
-      return {
-        ok: false,
-        scope,
-        retryAfterSec: secondsUntil(res.reset),
-        remaining: 0,
-        resetAt: res.reset,
+    try {
+      const res = await lim.limit(id)
+      // On a timeout Upstash answers success:true with reason 'timeout'.
+      // That is "we don't know", and unknown must not mean allowed.
+      if (res.reason === 'timeout') return { ok: false, scope: 'global', unavailable: true }
+      if (!res.success) {
+        return { ok: false, scope, retryAfterSec: secondsUntil(res.reset), resetAt: res.reset }
       }
+    } catch {
+      return { ok: false, scope: 'global', unavailable: true }
     }
   }
 
@@ -174,65 +201,104 @@ export async function checkRateLimits(
 const today = () => new Date().toISOString().slice(0, 10)
 const TTL_SECONDS = 60 * 60 * 48
 
-export interface BudgetVerdict {
+export interface Reservation {
   ok: boolean
-  resetsAt?: string
-  /** Set when the reserve succeeded, so the caller can reconcile afterwards. */
-  reservedUsd?: number
+  resetsAt: string
+  /** Why a reservation failed: over the cap, or counters unreachable. */
+  reason?: 'budget' | 'counters'
+  provider: 'jev' | 'openai'
+  reservedUsd: number
+  /** The day the reservation was taken on, so reconciling after midnight UTC
+   *  settles against the same counter rather than tomorrow's. */
+  day: string
+}
+
+function resetsAtFor(day: string): string {
+  const next = new Date(`${day}T00:00:00Z`)
+  next.setUTCDate(next.getUTCDate() + 1)
+  return next.toISOString()
 }
 
 /**
  * Reserve before the call, reconcile after. Charging only on the way back lets
  * concurrent requests overshoot the cap indefinitely.
  */
-async function reserve(provider: 'jev' | 'openai', usd: number, capUsd: number): Promise<BudgetVerdict> {
-  const resetsAt = `${today()}T24:00:00Z`
+async function reserve(provider: 'jev' | 'openai', usd: number, capUsd: number): Promise<Reservation> {
+  const day = today()
+  const base = { provider, day, resetsAt: resetsAtFor(day) }
+
   if (!redis) {
-    // Local dev runs without Upstash so the app is usable with no external
-    // service. In production, no counters means no way to know what has been
-    // spent, so we fail closed rather than hand out an uncapped key.
-    if (process.env.NODE_ENV !== 'production') return { ok: true, resetsAt, reservedUsd: 0 }
-    return { ok: false, resetsAt }
+    // Without counters nothing can observe the day's spend, so production
+    // refuses rather than hand out an uncapped key.
+    if (!isProduction) return { ...base, ok: true, reservedUsd: 0 }
+    return { ...base, ok: false, reason: 'counters', reservedUsd: 0 }
   }
 
-  const key = `jevlab:spend:${provider}:${today()}`
-  const total = await redis.incrbyfloat(key, usd)
-  await redis.expire(key, TTL_SECONDS)
+  const key = `jevlab:spend:${provider}:${day}`
+  try {
+    const total = await withTimeout(redis.incrbyfloat(key, usd))
+    // Fire and forget: a missed TTL only means a key lingers past two days.
+    redis.expire(key, TTL_SECONDS).catch(() => {})
 
-  if (total > capUsd) {
-    await redis.incrbyfloat(key, -usd)
-    return { ok: false, resetsAt }
+    if (total > capUsd) {
+      await withTimeout(redis.incrbyfloat(key, -usd)).catch(() => {})
+      return { ...base, ok: false, reason: 'budget', reservedUsd: 0 }
+    }
+    return { ...base, ok: true, reservedUsd: usd }
+  } catch {
+    return { ...base, ok: false, reason: 'counters', reservedUsd: 0 }
   }
-  return { ok: true, resetsAt, reservedUsd: usd }
 }
 
-/** Settle the difference between the estimate and what was actually used. */
-async function reconcile(provider: 'jev' | 'openai', reservedUsd: number, actualUsd: number) {
-  if (!redis) return
-  const delta = actualUsd - reservedUsd
-  if (Math.abs(delta) < 1e-9) return
-  const key = `jevlab:spend:${provider}:${today()}`
-  await redis.incrbyfloat(key, delta)
+/**
+ * Settle the difference between the estimate and what was actually billed.
+ * Never throws: a result the visitor has already been charged for must not be
+ * thrown away because a counter write failed.
+ */
+async function settle(r: Reservation, actualUsd: number): Promise<void> {
+  if (!redis || !r.ok) return
+  const delta = actualUsd - r.reservedUsd
+  if (Math.abs(delta) < 1e-12) return
+  try {
+    await withTimeout(redis.incrbyfloat(`jevlab:spend:${r.provider}:${r.day}`, delta))
+  } catch (err) {
+    console.error(JSON.stringify({ at: 'guards', error: 'reconcile failed', provider: r.provider, delta }))
+  }
 }
 
-export async function reserveJevSpend(estimatedInputTokens: number): Promise<BudgetVerdict> {
+export function reserveJevSpend(estimatedInputTokens: number): Promise<Reservation> {
   const usd = (estimatedInputTokens * PRICING.jev.inPerM) / 1_000_000
   return reserve('jev', usd, LIMITS.budget.jevUsd)
 }
 
-export async function reconcileJevSpend(reservedUsd: number, actualInputTokens: number) {
-  return reconcile('jev', reservedUsd, (actualInputTokens * PRICING.jev.inPerM) / 1_000_000)
+/** Jev bills input tokens only. */
+export function settleJevSpend(r: Reservation, actualInputTokens: number): Promise<void> {
+  return settle(r, (actualInputTokens * PRICING.jev.inPerM) / 1_000_000)
 }
 
-export async function reserveOpenAiSpend(estimatedPromptTokens: number): Promise<BudgetVerdict> {
+export function reserveOpenAiSpend(estimatedPromptTokens: number): Promise<Reservation> {
   const usd =
     (estimatedPromptTokens * PRICING.llm.inPerM) / 1_000_000 +
-    (OPENAI_OUTPUT_ALLOWANCE_TOKENS * PRICING.llm.outPerM) / 1_000_000
+    (OPENAI_MAX_OUTPUT_TOKENS * PRICING.llm.outPerM) / 1_000_000
   return reserve('openai', usd, LIMITS.budget.openaiUsd)
 }
 
-export async function reconcileOpenAiSpend(reservedUsd: number, actualUsd: number) {
-  return reconcile('openai', reservedUsd, actualUsd)
+export function settleOpenAiSpend(r: Reservation, actualUsd: number): Promise<void> {
+  return settle(r, actualUsd)
+}
+
+/**
+ * When an upstream call timed out we cannot know what it billed: the provider
+ * may have processed it fully. Keeping the reservation is the conservative
+ * choice; refunding it to zero is how spend used to leak past the cap.
+ */
+export function keepReservation(_r: Reservation): Promise<void> {
+  return Promise.resolve()
+}
+
+/** Only for failures where the provider certainly billed nothing. */
+export function releaseReservation(r: Reservation): Promise<void> {
+  return settle(r, 0)
 }
 
 // ---------------------------------------------------------------------------
@@ -241,29 +307,45 @@ export async function reconcileOpenAiSpend(reservedUsd: number, actualUsd: numbe
 
 export type BudgetState = 'ok' | 'low' | 'paused'
 
-export async function budgetState(): Promise<{
-  state: BudgetState
-  jevSpentUsd: number
-  openaiSpentUsd: number
-  resetsAt: string
-}> {
-  const resetsAt = `${today()}T24:00:00Z`
-  if (KILL_SWITCH) return { state: 'paused', jevSpentUsd: 0, openaiSpentUsd: 0, resetsAt }
-  if (!redis) return { state: 'ok', jevSpentUsd: 0, openaiSpentUsd: 0, resetsAt }
-
-  const [jevRaw, openaiRaw] = await Promise.all([
-    redis.get<string | number>(`jevlab:spend:jev:${today()}`),
-    redis.get<string | number>(`jevlab:spend:openai:${today()}`),
-  ])
-
-  const jevSpentUsd = Number(jevRaw ?? 0)
-  const openaiSpentUsd = Number(openaiRaw ?? 0)
-  const jevFrac = jevSpentUsd / LIMITS.budget.jevUsd
-  const openaiFrac = openaiSpentUsd / LIMITS.budget.openaiUsd
-  const worst = Math.max(jevFrac, openaiFrac)
-
-  const state: BudgetState = worst >= 1 ? 'paused' : worst >= LOW_BUDGET_FRACTION ? 'low' : 'ok'
-  return { state, jevSpentUsd, openaiSpentUsd, resetsAt }
+function stateFor(fraction: number): BudgetState {
+  return fraction >= 1 ? 'paused' : fraction >= LOW_BUDGET_FRACTION ? 'low' : 'ok'
 }
 
-export const redisAvailable = hasRedis
+/**
+ * Jev and the comparison are reported separately: an exhausted OpenAI budget
+ * turns off comparisons, not the site.
+ */
+export async function budgetState(): Promise<{
+  state: BudgetState
+  compare: BudgetState
+  resetsAt: string
+}> {
+  const day = today()
+  const resetsAt = resetsAtFor(day)
+
+  if (KILL_SWITCH) return { state: 'paused', compare: 'paused', resetsAt }
+  if (!redis) {
+    // In production no counters means every run is refused; say so.
+    return isProduction
+      ? { state: 'paused', compare: 'paused', resetsAt }
+      : { state: 'ok', compare: 'ok', resetsAt }
+  }
+
+  try {
+    const [jevRaw, openaiRaw] = await withTimeout(
+      Promise.all([
+        redis.get<string | number>(`jevlab:spend:jev:${day}`),
+        redis.get<string | number>(`jevlab:spend:openai:${day}`),
+      ])
+    )
+    return {
+      state: stateFor(Number(jevRaw ?? 0) / LIMITS.budget.jevUsd),
+      compare: stateFor(Number(openaiRaw ?? 0) / LIMITS.budget.openaiUsd),
+      resetsAt,
+    }
+  } catch {
+    // Unreadable counters mean every spend reservation is failing closed too,
+    // so the honest banner is "paused", not "ok".
+    return { state: 'paused', compare: 'paused', resetsAt }
+  }
+}

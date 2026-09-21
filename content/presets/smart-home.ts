@@ -10,6 +10,10 @@ import type { Preset } from './types'
  * category, then a call to find the device, then a call to find the action —
  * is three round trips to learn what one round trip already knew.
  *
+ * The demo page describes its questions in prose and publishes no request or
+ * numbers, so these eight questions are modelled on it, not copied from it, and
+ * nothing here is recorded.
+ *
  * The policy is the other half. Every irrelevant answer is still an answer,
  * with a probability attached, so the grey_unless rules below say which ones
  * your code is allowed to read on this path. Switch variants and watch which

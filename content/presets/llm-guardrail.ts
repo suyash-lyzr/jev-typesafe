@@ -9,9 +9,9 @@ import type { Preset } from './types'
  * sit outside the prompt, where talking to the model cannot move them.
  *
  * Two things are worth watching here. The first is that severity earns its
- * place: `melatonin_dose` and the blocked dosage request ask the same kind of
- * question, and it is the harm score, not the medical_advice Noul, that sends
- * one to a human and the other nowhere. The second is `novelist_poison`, which
+ * place: `melatonin_dose` and the dosage request both go to review on their
+ * medical_advice Noul (0.55 and 0.95), but the dosage request's severity of
+ * 2.02 crosses the block line, so its review becomes a block. The second is `novelist_poison`, which
  * reads violent and passes anyway, because asking how a detective describes a
  * poisoning is not asking to poison anyone.
  *
@@ -84,7 +84,7 @@ export const llmGuardrail: Preset = {
   // The cookbook's "strict" policy. A hazard at or above 0.70 triggers its
   // action, at or above 0.35 it goes to a human, and below that it passes
   // unless something else fires. Severity at 2.0 or more turns a review into a
-  // block, which is the one rule that can override all four Nouls.
+  // block; it only ever escalates a review, never overrides a pass.
   policy: {
     rules: [
       { q: 'jailbreak', kind: 'noul', yes: 0.7, no: 0.35 },

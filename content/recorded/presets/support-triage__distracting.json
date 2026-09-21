@@ -1,0 +1,208 @@
+{
+  "preset": "support-triage",
+  "variant": "distracting",
+  "recordedAt": "2026-09-21T19:02:10.142Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "customer": {
+        "id": "c_88214",
+        "name": "R. Okafor",
+        "loyalty_tier": "gold",
+        "member_since": "2021-03-14",
+        "lifetime_value_gbp": 2184.5,
+        "newsletter": {
+          "weekly_digest": true,
+          "product_launches": true,
+          "partner_offers": false,
+          "sms": false,
+          "preferred_language": "en-GB"
+        }
+      },
+      "recent_orders": [
+        {
+          "id": "o_5512",
+          "date": "2024-11-02",
+          "items": "Trail Runner 3, size 9",
+          "total_gbp": 118
+        },
+        {
+          "id": "o_5498",
+          "date": "2024-09-18",
+          "items": "Merino socks x3",
+          "total_gbp": 27
+        },
+        {
+          "id": "o_5401",
+          "date": "2024-08-05",
+          "items": "Rain shell, M",
+          "total_gbp": 96
+        },
+        {
+          "id": "o_5377",
+          "date": "2024-06-21",
+          "items": "Trail Runner 2, size 9",
+          "total_gbp": 104
+        },
+        {
+          "id": "o_5290",
+          "date": "2024-05-09",
+          "items": "Hydration vest",
+          "total_gbp": 72
+        },
+        {
+          "id": "o_5188",
+          "date": "2024-03-30",
+          "items": "Gel insoles",
+          "total_gbp": 19
+        },
+        {
+          "id": "o_5102",
+          "date": "2024-02-11",
+          "items": "Headtorch",
+          "total_gbp": 44
+        },
+        {
+          "id": "o_4996",
+          "date": "2023-12-28",
+          "items": "Winter tights",
+          "total_gbp": 58
+        },
+        {
+          "id": "o_4871",
+          "date": "2023-11-15",
+          "items": "Trail Runner 2, size 9",
+          "total_gbp": 104
+        },
+        {
+          "id": "o_4790",
+          "date": "2023-10-02",
+          "items": "Running cap",
+          "total_gbp": 22
+        }
+      ],
+      "open_ticket": {
+        "channel": "email",
+        "received_at": "2024-11-12T09:41:00Z",
+        "subject": "order o_5512",
+        "body": "I ordered the trail runners in a 9 and they turned up as a 7, so they are no use to me. I have also been charged twice for the order — there are two identical amounts on my statement. It has been over a week now and nobody has come back to me. Can someone sort this out?"
+      }
+    },
+    "model": "jev-latest",
+    "questions": {
+      "department": {
+        "type": "choice",
+        "instructions": "Which team should handle this?",
+        "criteria": {
+          "returns": "Exchanges, wrong or damaged items",
+          "shipping": "Delivery status, delays, lost packages",
+          "billing": "Charges, invoices, payment problems"
+        }
+      },
+      "return_reason": {
+        "type": "choice",
+        "instructions": "If the customer wants to return something, why?",
+        "criteria": {
+          "wrong_size": "The item doesn't fit",
+          "wrong_item": "A different product was delivered",
+          "damaged": "The item arrived broken or faulty",
+          "changed_mind": "The item is fine, the customer no longer wants it",
+          "other": "A return reason that fits none of the above"
+        }
+      },
+      "shipping_issue": {
+        "type": "choice",
+        "instructions": "If this is a shipping problem, which kind is it?",
+        "criteria": {
+          "not_delivered": "The package never arrived",
+          "delayed": "The package is late but still on its way",
+          "wrong_address": "The package went to the wrong place",
+          "damaged_in_transit": "The package arrived damaged",
+          "other": "A shipping problem that fits none of the above"
+        }
+      },
+      "requested_resolution": {
+        "type": "choice",
+        "instructions": "What does the customer want to happen?",
+        "criteria": {
+          "exchange": "Swap the item for a different one",
+          "refund": "Money back",
+          "replacement": "The same item sent again",
+          "information": "Just an answer, no action needed"
+        }
+      },
+      "tone": {
+        "type": "choice",
+        "instructions": "What is the customer's tone?",
+        "criteria": {
+          "calm": null,
+          "frustrated": null,
+          "angry": null
+        }
+      }
+    }
+  },
+  "answers": {
+    "department": {
+      "type": "choice",
+      "choice": "returns",
+      "confidence": 0.76,
+      "probabilities": {
+        "shipping": 0,
+        "returns": 0.84,
+        "billing": 0.16
+      }
+    },
+    "return_reason": {
+      "type": "choice",
+      "choice": "wrong_size",
+      "confidence": 0.99,
+      "probabilities": {
+        "damaged": 0,
+        "other": 0,
+        "wrong_item": 0.01,
+        "changed_mind": 0,
+        "wrong_size": 0.99
+      }
+    },
+    "shipping_issue": {
+      "type": "choice",
+      "choice": "other",
+      "confidence": 1,
+      "probabilities": {
+        "delayed": 0,
+        "not_delivered": 0,
+        "other": 1,
+        "damaged_in_transit": 0,
+        "wrong_address": 0
+      }
+    },
+    "requested_resolution": {
+      "type": "choice",
+      "choice": "replacement",
+      "confidence": 0.63,
+      "probabilities": {
+        "refund": 0.18,
+        "information": 0,
+        "exchange": 0.09,
+        "replacement": 0.73
+      }
+    },
+    "tone": {
+      "type": "choice",
+      "choice": "frustrated",
+      "confidence": 0.98,
+      "probabilities": {
+        "frustrated": 0.99,
+        "angry": 0.01,
+        "calm": 0
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 1507,
+    "output_tokens": 236
+  },
+  "costUsd": 0.00006329400000000001,
+  "clientMs": 373
+}

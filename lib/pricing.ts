@@ -4,37 +4,67 @@
  *
  * Jev: $42 per billion input tokens = $0.042 per million. Output tokens free.
  * Source: docs.typesafe.ai/models, checked 2026-09-21.
+ *
+ * The OpenAI side is read from the environment on the server only. Client
+ * components never read it directly — in the browser those variables are
+ * undefined, so they would silently show the defaults instead of what the
+ * server actually charged. The compare route returns the prices it used.
  */
 
-export const PRICING = {
-  checkedOn: '2026-09-21',
-  jev: {
-    inPerM: 0.042,
-    outPerM: 0,
-    source: 'https://docs.typesafe.ai/models',
-  },
-  /**
-   * The compare opponent. The id and both prices MUST be confirmed against
-   * OpenAI's pricing page before launch — see the plan's open items. Nothing
-   * else in the app hardcodes them.
-   */
-  llm: {
-    id: process.env.OPENAI_COMPARE_MODEL ?? 'gpt-5.4-mini',
-    inPerM: Number(process.env.OPENAI_IN_PER_M ?? 0.75),
-    outPerM: Number(process.env.OPENAI_OUT_PER_M ?? 4.5),
-    source: 'https://openai.com/api/pricing/ — confirm before launch',
-  },
-} as const
-
-export function jevCostUsd(inputTokens: number): number {
-  return (inputTokens * PRICING.jev.inPerM) / 1_000_000
+/** Empty, zero, negative or non-numeric values fall back instead of disabling the cap. */
+function price(value: string | undefined, fallback: number): number {
+  const n = Number(value)
+  return value !== undefined && value.trim() !== '' && Number.isFinite(n) && n > 0 ? n : fallback
 }
 
-export function llmCostUsd(promptTokens: number, completionTokens: number): number {
-  return (
-    (promptTokens * PRICING.llm.inPerM) / 1_000_000 +
-    (completionTokens * PRICING.llm.outPerM) / 1_000_000
-  )
+export const JEV_PRICING = {
+  checkedOn: '2026-09-21',
+  inPerM: 0.042,
+  outPerM: 0,
+  source: 'https://docs.typesafe.ai/models',
+} as const
+
+export interface LlmPricing {
+  id: string
+  inPerM: number
+  outPerM: number
+  /**
+   * The date someone checked these against OpenAI's pricing page, or null.
+   * The defaults are TypeSafe's own cookbook assumption for gpt-5.4-mini
+   * ("as of 2026-07"), not a price anyone here has confirmed.
+   */
+  confirmedOn: string | null
+  source: string
+}
+
+export function llmPricingFromEnv(env: Record<string, string | undefined> = process.env): LlmPricing {
+  const confirmed = env.OPENAI_PRICE_CONFIRMED_ON?.trim()
+  return {
+    id: env.OPENAI_COMPARE_MODEL?.trim() || 'gpt-5.4-mini',
+    inPerM: price(env.OPENAI_IN_PER_M, 0.75),
+    outPerM: price(env.OPENAI_OUT_PER_M, 4.5),
+    confirmedOn: confirmed && /^\d{4}-\d{2}-\d{2}$/.test(confirmed) ? confirmed : null,
+    source: confirmed
+      ? 'https://openai.com/api/pricing/'
+      : "TypeSafe's consistency cookbook assumption (as of 2026-07), not yet confirmed",
+  }
+}
+
+/** Server-side view. Import `JEV_PRICING` rather than this in client components. */
+export const PRICING = {
+  checkedOn: JEV_PRICING.checkedOn,
+  jev: JEV_PRICING,
+  get llm(): LlmPricing {
+    return llmPricingFromEnv()
+  },
+}
+
+export function jevCostUsd(inputTokens: number): number {
+  return (inputTokens * JEV_PRICING.inPerM) / 1_000_000
+}
+
+export function llmCostUsd(promptTokens: number, completionTokens: number, pricing: LlmPricing = PRICING.llm): number {
+  return (promptTokens * pricing.inPerM) / 1_000_000 + (completionTokens * pricing.outPerM) / 1_000_000
 }
 
 /**

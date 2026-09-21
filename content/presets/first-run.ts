@@ -68,7 +68,7 @@ export const firstRun: Preset = {
           is_urgent: { type: 'noul', noul: 1.0 },
         },
         usage: { input_tokens: 392, output_tokens: 65 },
-        note: 'A live run of the same request on 2026-09-21 returned technical 0.82 at confidence 0.73 and is_urgent 0.99. Close, not identical — which is what "calibrated across many answers" means.',
+        note: 'These are the numbers printed in the docs. A live run of the same request by Jev Lab on 2026-09-21 returned technical 0.82 at confidence 0.73 and is_urgent 0.99 (saved in content/recorded/live). Close, not identical: aliases move, and one answer is not a guarantee of the next.',
       },
     },
     {

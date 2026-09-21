@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server'
-import { CompareEnvelope, JevResponse, MAX_BODY_BYTES, estimateTokens } from '@/lib/schema'
-import type { RunError } from '@/lib/schema'
+import { CompareEnvelope, JevResponse, COMPARE_MODELS } from '@/lib/schema'
+import type { JevRequest, RunError } from '@/lib/schema'
 import {
-  KILL_SWITCH,
-  callerKey,
-  checkRateLimits,
-  isSameOrigin,
   reserveJevSpend,
-  reconcileJevSpend,
+  settleJevSpend,
   reserveOpenAiSpend,
-  reconcileOpenAiSpend,
-  redisAvailable,
+  settleOpenAiSpend,
+  releaseReservation,
+  keepReservation,
 } from '@/lib/guards'
+import type { Reservation } from '@/lib/guards'
 import { callJev } from '@/lib/upstream'
-import { callOpenAi } from '@/lib/openai-compare'
+import { callOpenAi, countEnumValues, MAX_COMPARE_ENUM_VALUES } from '@/lib/openai-compare'
+import type { CompareOutcome } from '@/lib/openai-compare'
 import { jevCostUsd, llmCostUsd, PRICING } from '@/lib/pricing'
+import { preflight, budgetFailure, fail } from '@/lib/proxy'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -23,209 +23,177 @@ export const maxDuration = 10
 /**
  * Both models, one invocation.
  *
- * The earlier design issued two fetches so the Jev lane could land first and a
- * stopwatch could "race" them. That made the headline claim false — two
- * invocations, possibly two cold starts — and doubled the quota cost. Here both
- * calls leave the same function at the same moment and each reports its own
- * server-measured time.
+ * Both calls leave this function at the same moment under Promise.allSettled,
+ * and each reports its own round trip, body included. They are two separate
+ * network calls — the page says so — not one request.
  */
 
-/** Compare is capped tighter than a plain run: it costs two providers. */
+/** Tighter than a plain run: a comparison spends two providers. */
 const MAX_COMPARE_QUESTIONS = 12
-const JEV_DEADLINE_MS = 8_000
-const OPENAI_TIMEOUT_MS = 7_000
 
-function fail(error: RunError, status: number, headers: Record<string, string> = {}) {
-  return NextResponse.json(error, { status, headers: { 'Cache-Control': 'no-store', ...headers } })
+function isStructured(v: unknown): boolean {
+  return v !== null && typeof v === 'object'
+}
+
+/** The calls finish by here, leaving ~1s of the 9s budget to settle counters. */
+const CALLS_BUDGET_MS = 8_000
+
+/** Everything a comparison refuses that a plain run would accept. */
+function compareOnlyError(request: JevRequest): RunError | null {
+  const questionCount = Object.keys(request.questions).length
+  if (questionCount > MAX_COMPARE_QUESTIONS) {
+    return {
+      error: 'validation',
+      message: `Comparisons are capped at ${MAX_COMPARE_QUESTIONS} questions. This request has ${questionCount}.`,
+    }
+  }
+
+  // A comparison spends OpenAI money even when the Jev half fails at once, so
+  // an unknown model id (which TypeSafe rejects in milliseconds) would buy an
+  // OpenAI call for free. Only known ids are compared.
+  if (!COMPARE_MODELS.includes(request.model)) {
+    return {
+      error: 'validation',
+      message: `Comparisons run on ${COMPARE_MODELS.join(', ')}. Switch the model to one of those.`,
+    }
+  }
+
+  // Structured Outputs cannot express object-valued instructions or criteria
+  // the way Jev reads them, so the two sides would not be doing the same job.
+  const structured = Object.values(request.questions).some((q) => {
+    if (isStructured(q.instructions)) return true
+    if (q.type === 'choice') return Object.values(q.criteria).some(isStructured)
+    if (q.type === 'score') return q.criteria.some(isStructured)
+    return q.criteria ? isStructured(q.criteria.true) || isStructured(q.criteria.false) : false
+  })
+  if (structured) {
+    return {
+      error: 'validation',
+      message:
+        'This request uses structured (object) instructions or criteria. The comparison only handles plain-text questions, so the two sides would not be doing the same job.',
+    }
+  }
+
+  if (countEnumValues(request.questions) > MAX_COMPARE_ENUM_VALUES) {
+    return {
+      error: 'validation',
+      message: `This request has more options and levels than the comparison model's schema accepts (${MAX_COMPARE_ENUM_VALUES}). Trim the options, or run Jev on its own.`,
+    }
+  }
+  return null
 }
 
 export async function POST(req: Request) {
-  const serverStart = performance.now()
-
-  if (!isSameOrigin(req)) {
-    return fail({ error: 'origin', message: 'This endpoint only serves Jev Lab.' }, 403)
-  }
-  if (KILL_SWITCH) {
-    return fail({ error: 'paused', message: 'Live runs are paused right now.' }, 503)
-  }
-
-  const rawBody = await req.text()
-  if (rawBody.length > MAX_BODY_BYTES) {
-    return fail({ error: 'validation', message: 'Request body is too large.' }, 413)
-  }
-
-  let envelope
-  try {
-    envelope = CompareEnvelope.parse(JSON.parse(rawBody))
-  } catch (err: any) {
-    const issue = Array.isArray(err?.issues) ? err.issues[0] : undefined
-    return fail(
-      { error: 'validation', message: issue?.message ?? 'That request does not match the schema.', raw: err?.issues },
-      422
-    )
-  }
-
-  const { request } = envelope
+  const pre = await preflight(req, CompareEnvelope, 'compare', compareOnlyError)
+  if (pre instanceof Response) return pre
+  const { request, estimatedTokens, serverStart } = pre
   const questionCount = Object.keys(request.questions).length
-
-  if (questionCount > MAX_COMPARE_QUESTIONS) {
-    return fail(
-      {
-        error: 'validation',
-        message: `Comparisons are capped at ${MAX_COMPARE_QUESTIONS} questions so both sides stay inside one request. This one has ${questionCount}.`,
-      },
-      422
-    )
-  }
-
-  // Structured Outputs cannot express a nested object criteria the way Jev can,
-  // so say that plainly rather than producing an unfair comparison.
-  const hasStructuredCriteria = Object.values(request.questions).some((q) => {
-    if (q.type === 'choice') return Object.values(q.criteria).some((d) => d && typeof d === 'object')
-    if (q.type === 'score') return q.criteria.some((d) => d && typeof d === 'object')
-    return typeof q.instructions === 'object' && q.instructions !== null
-  })
-  if (hasStructuredCriteria) {
-    return fail(
-      {
-        error: 'validation',
-        message:
-          'This request uses structured (object) instructions or criteria. The comparison only handles plain-text questions, so the two sides would not be doing the same job.',
-      },
-      422
-    )
-  }
-
-  const key = callerKey(req.headers)
-  const verdict = await checkRateLimits(key, 'compare')
-  if (!verdict.ok) {
-    return fail(
-      {
-        error: 'rate_limited',
-        message:
-          verdict.scope === 'day'
-            ? "You've used today's comparisons from this network. Jev-only runs still work."
-            : "You've hit the per-minute comparison limit. Jev-only runs still work.",
-        scope: verdict.scope,
-        retryAfterSec: verdict.retryAfterSec,
-      },
-      429,
-      verdict.retryAfterSec ? { 'Retry-After': String(verdict.retryAfterSec) } : {}
-    )
-  }
+  const callsDeadline = Math.min(pre.deadline, serverStart + CALLS_BUDGET_MS)
 
   const apiKey = process.env.TYPESAFE_API_KEY
-  const openaiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
     return fail({ error: 'upstream_auth', message: 'Jev Lab is missing its TypeSafe API key.' }, 500)
   }
+  const openaiKey = process.env.OPENAI_API_KEY
+  const llmPricing = PRICING.llm
 
-  const estimatedTokens = estimateTokens(request.state) + estimateTokens(request.questions)
+  const jevReservation = await reserveJevSpend(estimatedTokens)
+  if (!jevReservation.ok) return budgetFailure(jevReservation)
 
-  const jevBudget = await reserveJevSpend(estimatedTokens)
-  if (!jevBudget.ok) {
-    return fail(
-      {
-        error: redisAvailable ? 'budget' : 'counters_unavailable',
-        message: redisAvailable
-          ? "Today's free budget is used up. Live runs return at 00:00 UTC."
-          : 'Live runs are paused: usage counters are unavailable.',
-        scope: 'budget',
-        resetsAt: jevBudget.resetsAt,
-      },
-      redisAvailable ? 429 : 503
-    )
-  }
+  // Reserve the LLM side before either call goes out. If it is over budget,
+  // the Jev half still runs and the tab says why the other half did not.
+  const llmReservation: Reservation | null = openaiKey ? await reserveOpenAiSpend(estimatedTokens) : null
+  const llmCanRun = Boolean(openaiKey && llmReservation?.ok)
 
-  // Reserve the LLM side too, before either call goes out.
-  const llmBudget = openaiKey ? await reserveOpenAiSpend(estimatedTokens) : { ok: false as const }
-
-  const [jevResult, llmResult] = await Promise.allSettled([
-    callJev(request, apiKey, JEV_DEADLINE_MS),
-    openaiKey && llmBudget.ok
-      ? callOpenAi(request, openaiKey, PRICING.llm.id, OPENAI_TIMEOUT_MS)
-      : Promise.resolve(null),
+  const [jevSettled, llmSettled] = await Promise.allSettled([
+    callJev(request, apiKey, callsDeadline),
+    llmCanRun ? callOpenAi(request, openaiKey!, llmPricing, callsDeadline) : Promise.resolve(null),
   ])
 
-  // --- Jev half --------------------------------------------------------------
-  if (jevResult.status !== 'fulfilled' || !jevResult.value.ok) {
-    await reconcileJevSpend(jevBudget.reservedUsd ?? 0, 0)
-    if ('reservedUsd' in llmBudget && llmBudget.reservedUsd) {
-      await reconcileOpenAiSpend(llmBudget.reservedUsd, 0)
-    }
-    const error: RunError =
-      jevResult.status === 'fulfilled' && !jevResult.value.ok
-        ? jevResult.value.error
-        : { error: 'upstream', message: 'The Jev call failed.' }
-    return fail(error, 502)
+  // --- settle both sides together ---------------------------------------------
+  // Each ran independently, so each is settled on what it billed — the LLM
+  // side is never refunded to zero because the Jev half failed. The two
+  // counter writes go out in parallel so they fit in the remaining budget.
+  const llm: CompareOutcome | null = llmSettled.status === 'fulfilled' ? llmSettled.value : null
+  const llmCostUsd_ =
+    llmReservation?.ok && llm && (llm.promptTokens > 0 || llm.completionTokens > 0)
+      ? llmCostUsd(llm.promptTokens, llm.completionTokens, llmPricing)
+      : 0
+
+  function settleLlm(): Promise<unknown> {
+    if (!llmReservation?.ok) return Promise.resolve()
+    if (llmCostUsd_ > 0) return settleOpenAiSpend(llmReservation, llmCostUsd_)
+    if (!llm || llm.mayHaveBilled) return keepReservation(llmReservation)
+    return releaseReservation(llmReservation)
   }
 
-  const jev = jevResult.value
+  const jev = jevSettled.status === 'fulfilled' ? jevSettled.value : null
+  if (!jev || !jev.ok) {
+    await Promise.all([settleLlm(), jev && !jev.mayHaveBilled ? releaseReservation(jevReservation) : null])
+    const error: RunError = jev && !jev.ok ? jev.error : { error: 'upstream', message: 'The Jev call failed.' }
+    const status = error.error === 'validation' ? 422 : error.error === 'upstream_timeout' ? 504 : 502
+    return fail(error, status)
+  }
+
   const parsed = JevResponse.safeParse(jev.body)
   if (!parsed.success) {
-    await reconcileJevSpend(jevBudget.reservedUsd ?? 0, 0)
-    return fail(
-      { error: 'upstream', message: 'TypeSafe returned an unrecognised response.', raw: jev.body },
-      502
-    )
+    const billed = (jev.body as { usage?: { input_tokens?: unknown } })?.usage?.input_tokens
+    await Promise.all([
+      settleLlm(),
+      typeof billed === 'number' ? settleJevSpend(jevReservation, billed) : keepReservation(jevReservation),
+    ])
+    return fail({ error: 'upstream', message: 'TypeSafe returned a response Jev Lab did not recognise.' }, 502)
   }
 
   const { model, answers, usage } = parsed.data
-  await reconcileJevSpend(jevBudget.reservedUsd ?? 0, usage.input_tokens)
+  await Promise.all([settleLlm(), settleJevSpend(jevReservation, usage.input_tokens)])
 
-  // --- LLM half: a failure here never blocks the Jev half --------------------
-  const llm = llmResult.status === 'fulfilled' ? llmResult.value : null
-  let compare = undefined
-
-  if (llm) {
-    const costUsd = llmCostUsd(llm.promptTokens, llm.completionTokens)
-    if ('reservedUsd' in llmBudget && llmBudget.reservedUsd) {
-      await reconcileOpenAiSpend(llmBudget.reservedUsd, costUsd)
-    }
-    compare = {
-      llmModel: llm.model,
-      ok: llm.ok,
-      error: llm.error,
-      answers: llm.answers,
-      ms: llm.ms,
-      costUsd,
-      promptTokens: llm.promptTokens,
-      completionTokens: llm.completionTokens,
-    }
-  } else if (!openaiKey) {
-    compare = {
-      llmModel: PRICING.llm.id,
-      ok: false,
-      error: 'No OpenAI key is configured, so only the Jev half ran.',
-      answers: {},
-      ms: 0,
-      costUsd: 0,
-      promptTokens: 0,
-      completionTokens: 0,
-    }
-  } else {
-    compare = {
-      llmModel: PRICING.llm.id,
-      ok: false,
-      error: "Today's comparison budget is used up. Jev runs are unaffected.",
-      answers: {},
-      ms: 0,
-      costUsd: 0,
-      promptTokens: 0,
-      completionTokens: 0,
-    }
+  const pricing = {
+    id: llmPricing.id,
+    inPerM: llmPricing.inPerM,
+    outPerM: llmPricing.outPerM,
+    confirmedOn: llmPricing.confirmedOn,
   }
+
+  const compare = llm
+    ? {
+        llmModel: llm.model,
+        ok: llm.ok,
+        error: llm.error,
+        answers: llm.answers,
+        ms: llm.ms,
+        costUsd: llmCostUsd_,
+        promptTokens: llm.promptTokens,
+        completionTokens: llm.completionTokens,
+        pricing,
+      }
+    : {
+        llmModel: llmPricing.id,
+        ok: false,
+        error: !openaiKey
+          ? 'No OpenAI key is configured, so only the Jev half ran.'
+          : llmReservation?.reason === 'counters'
+            ? 'Usage counters are unavailable, so the comparison did not run. The Jev half is unaffected.'
+            : "Today's comparison budget is used up. Jev runs are unaffected.",
+        answers: {},
+        ms: 0,
+        costUsd: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        pricing,
+      }
 
   console.log(
     JSON.stringify({
       at: 'api/compare',
       status: 200,
       model,
-      llm: compare?.llmModel,
-      llmOk: compare?.ok,
+      llm: compare.llmModel,
+      llmOk: compare.ok,
       nQuestions: questionCount,
+      inputTokens: usage.input_tokens,
       jevMs: jev.jevMs,
-      llmMs: compare?.ms,
+      llmMs: compare.ms,
     })
   )
 
@@ -234,11 +202,7 @@ export async function POST(req: Request) {
       model,
       answers,
       usage,
-      timing: {
-        jevMs: jev.jevMs,
-        serverMs: Math.round(performance.now() - serverStart),
-        retries: jev.retries,
-      },
+      timing: { jevMs: jev.jevMs, serverMs: Math.round(performance.now() - serverStart), retries: jev.retries },
       costUsd: jevCostUsd(usage.input_tokens),
       replay: false,
       compare,

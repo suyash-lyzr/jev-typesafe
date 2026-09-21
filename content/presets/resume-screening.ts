@@ -16,8 +16,8 @@ import type { Preset } from './types'
  * a Score; then every answer lands on or near a description you chose, and you
  * can argue with the wording when you disagree.
  *
- * The third Noul is the control. "Does `resume_excerpt` state that the
- * candidate has used Python at work?" has a crisp boundary, which is what the
+ * The third Noul is the control. "Does the resume state that the candidate
+ * has used Python at work?" — the docs' own suggested rewording — has a crisp boundary, which is what the
  * docs mean by making the yes/no line unambiguous — and it is the question a
  * Noul is actually for.
  *
@@ -25,6 +25,9 @@ import type { Preset } from './types'
  * "Reading a Noul". That table publishes the Noul values and the Score values
  * but not the Score's distribution or confidence, so only the Nouls are
  * recorded below; each run's note carries the published score verbatim.
+ *
+ * The state is exactly the docs' candidate sentence, as a plain string, so the
+ * recorded Noul values belong to the request this preset actually sends.
  */
 export const resumeScreening: Preset = {
   slug: 'resume-screening',
@@ -45,9 +48,9 @@ export const resumeScreening: Preset = {
     },
     used_python_at_work: {
       type: 'noul',
-      instructions: 'Does `resume_excerpt` state that the candidate has used Python at work?',
+      instructions: 'Does the resume state that the candidate has used Python at work?',
       criteria: {
-        true: 'The excerpt names a job, role or project where Python was used',
+        true: 'It names a job, role or project where Python was used',
         false: 'Python is only mentioned outside work, or not mentioned at all',
       },
     },
@@ -67,11 +70,7 @@ export const resumeScreening: Preset = {
       label: 'Noul 0.03 · Score 0.0',
       description:
         'A clear no on both readings. The candidate says outright that they have not used Python, so the proposition is false and the Score lands on level 0.',
-      state: {
-        role_requirements:
-          'Backend engineer. Python is the primary language; the team also maintains services in Go.',
-        resume_excerpt: 'My experience is in Java and Go. I have not used Python.',
-      },
+      state: 'My experience is in Java and Go. I have not used Python.',
       recorded: {
         source: 'docs.typesafe.ai/primitives/noul#reading-a-noul',
         model: 'jev-1.13.0',
@@ -79,7 +78,7 @@ export const resumeScreening: Preset = {
         answers: {
           python_strong: { type: 'noul', noul: 0.03 },
         },
-        note: 'The docs table gives python_experience as 0.0 (No experience) for this excerpt, but publishes no distribution or confidence for it, so the Score is left unrecorded rather than reconstructed. used_python_at_work is ours to record.',
+        note: 'The docs table gives python_experience as 0.0 (No experience) for this excerpt, but publishes no distribution or confidence for it, so the Score is left unrecorded rather than reconstructed. used_python_at_work is not in the docs and is left for a live run.',
       },
     },
     {
@@ -87,12 +86,7 @@ export const resumeScreening: Preset = {
       label: 'Noul 0.14 · Score 1.0',
       description:
         'The one that makes the point. 0.14 is not "a bit of Python" — it is the model saying "strong" is probably false. The Score says the same resume is level 1, "Some familiarity", which is the reading a human would want.',
-      state: {
-        role_requirements:
-          'Backend engineer. Python is the primary language; the team also maintains services in Go.',
-        resume_excerpt:
-          'I have used Python occasionally for small scripts alongside my main Java work.',
-      },
+      state: 'I have used Python occasionally for small scripts alongside my main Java work.',
       recorded: {
         source: 'docs.typesafe.ai/primitives/noul#reading-a-noul',
         model: 'jev-1.13.0',
@@ -108,12 +102,7 @@ export const resumeScreening: Preset = {
       label: 'Noul 0.81 · Score 2.05',
       description:
         'A probable yes at 0.81, and a Score just past level 2, "Regular use in a job". Note that the gap from the previous candidate is 0.67 on the Noul and about one level on the Score: the spacing between Noul values is not something you chose.',
-      state: {
-        role_requirements:
-          'Backend engineer. Python is the primary language; the team also maintains services in Go.',
-        resume_excerpt:
-          'I used Python every day for two years in my last job, mostly data pipelines.',
-      },
+      state: 'I used Python every day for two years in my last job, mostly data pipelines.',
       recorded: {
         source: 'docs.typesafe.ai/primitives/noul#reading-a-noul',
         model: 'jev-1.13.0',
@@ -121,7 +110,7 @@ export const resumeScreening: Preset = {
         answers: {
           python_strong: { type: 'noul', noul: 0.81 },
         },
-        note: 'The docs table gives python_experience as 2.05 (Regular use in a job); a score of 2.05 means most of the probability sits on level 2 with a little above it, but the published table does not give the distribution, so the Score is unrecorded.',
+        note: 'The docs table gives python_experience as 2.05 (Regular use in a job); the published table does not give the distribution or confidence behind it, so the Score is unrecorded.',
       },
     },
     {
@@ -129,12 +118,7 @@ export const resumeScreening: Preset = {
       label: 'Noul 0.92 · Score 2.89',
       description:
         'A strong yes. 0.92 is a probability, not a mark out of one hundred — the candidate with 0.81 is not "11% less skilled", the model is just less sure the word "strong" applies.',
-      state: {
-        role_requirements:
-          'Backend engineer. Python is the primary language; the team also maintains services in Go.',
-        resume_excerpt:
-          'I have written Python daily for eight years, including maintaining a large Django codebase.',
-      },
+      state: 'I have written Python daily for eight years, including maintaining a large Django codebase.',
       recorded: {
         source: 'docs.typesafe.ai/primitives/noul#reading-a-noul',
         model: 'jev-1.13.0',

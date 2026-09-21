@@ -6,14 +6,15 @@
 @import '../styles/sage.css';
 
 /*
- * sage.css defines --font-sans but not --font-mono, while the Tailwind preset
- * maps font-mono to var(--font-mono). Without this the mono type scale falls
- * back to ui-monospace and every probability/token readout loses its alignment.
- * Fonts are loaded via <link> (not next/font) so the family names match the
- * literal names sage.css declares.
+ * Fonts are self-hosted by next/font under hashed family names. Alias them into
+ * the variables the Sage preset reads — after sage.css, so this wins — with
+ * Sage's literal names kept as fallbacks. sage.css also defines --font-sans
+ * but not --font-mono; without the second line every probability and token
+ * readout would fall back to ui-monospace.
  */
 [data-theme='sage'] {
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', 'Inter', ui-sans-serif, sans-serif;
+  --font-mono: var(--font-jetbrains), 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
 @layer base {

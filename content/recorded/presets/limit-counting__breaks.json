@@ -1,0 +1,98 @@
+{
+  "preset": "limit-counting",
+  "variant": "breaks",
+  "recordedAt": "2026-09-21T20:08:59.215Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "items": [
+        "kiwi",
+        "table",
+        "mango",
+        "river",
+        "plum",
+        "laptop",
+        "grape",
+        "cloud",
+        "lemon",
+        "pencil",
+        "cherry",
+        "piano",
+        "peach",
+        "candle",
+        "fig",
+        "bottle",
+        "lime",
+        "ladder",
+        "pear",
+        "window"
+      ]
+    },
+    "model": "jev-latest",
+    "questions": {
+      "fruit_count": {
+        "type": "choice",
+        "instructions": "How many items in `items` are the name of a fruit?",
+        "criteria": {
+          "0": null,
+          "1": null,
+          "2": null,
+          "3": null,
+          "4": null,
+          "5": null,
+          "6": null,
+          "7": null,
+          "8": null,
+          "9": null,
+          "10": null,
+          "11": null,
+          "12": null,
+          "13": null,
+          "14": null,
+          "15": null,
+          "16": null,
+          "17": null,
+          "18": null,
+          "19": null,
+          "20": null
+        }
+      }
+    }
+  },
+  "answers": {
+    "fruit_count": {
+      "type": "choice",
+      "choice": "9",
+      "confidence": 0.34,
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0.01,
+        "8": 0.02,
+        "9": 0.38,
+        "10": 0.28,
+        "11": 0.13,
+        "12": 0.14,
+        "13": 0.03,
+        "14": 0.01,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 522,
+    "output_tokens": 176
+  },
+  "costUsd": 0.000021924000000000002,
+  "clientMs": 1140
+}

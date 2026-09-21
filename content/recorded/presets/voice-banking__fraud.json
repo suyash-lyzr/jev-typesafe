@@ -1,0 +1,49 @@
+{
+  "preset": "voice-banking",
+  "variant": "fraud",
+  "recordedAt": "2026-09-21T19:02:14.052Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "I think someone used my card",
+    "model": "jev-latest",
+    "questions": {
+      "intent": {
+        "type": "choice",
+        "instructions": "What is the user trying to do?",
+        "criteria": {
+          "check_balance": "View account balance",
+          "approve_transfer": "Approve the pending withdrawal request",
+          "support": "Get help with an issue",
+          "other": "None of the above"
+        }
+      },
+      "mentions_amount": {
+        "type": "noul",
+        "instructions": "The user names a specific sum of money"
+      }
+    }
+  },
+  "answers": {
+    "intent": {
+      "type": "choice",
+      "choice": "support",
+      "confidence": 0.98,
+      "probabilities": {
+        "approve_transfer": 0,
+        "other": 0.01,
+        "support": 0.99,
+        "check_balance": 0
+      }
+    },
+    "mentions_amount": {
+      "type": "noul",
+      "noul": 0.02
+    }
+  },
+  "usage": {
+    "input_tokens": 369,
+    "output_tokens": 65
+  },
+  "costUsd": 0.000015498,
+  "clientMs": 323
+}

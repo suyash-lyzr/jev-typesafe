@@ -101,7 +101,7 @@ export default function CheatsheetPage() {
             <li>
               <strong className="text-foreground">Speculative fan-out</strong> — ask everything you
               might need in one request and ignore what does not apply. One documented test: 12.2×
-              cheaper and 10× faster than 13 separate calls, same answers.
+              cheaper and 10× faster than 13 separate calls, with no change in the answers.
             </li>
             <li>
               <strong className="text-foreground">Confidence-gated routing</strong> — the answer says
@@ -128,8 +128,8 @@ export default function CheatsheetPage() {
             <li>Large states full of irrelevant detail</li>
             <li>Adversarial or injected content</li>
             <li>Instructions that contradict their criteria</li>
-            <li>Structural invariants: P(yes) + P(not yes) ≠ 1</li>
-            <li>Generating text — it cannot</li>
+            <li>Structural invariants: P(yes) + P(not yes) need not equal 1</li>
+            <li>Generating text — it is not trained to, and forcing it works badly</li>
           </ol>
         </Section>
 
@@ -143,7 +143,7 @@ export default function CheatsheetPage() {
               Point questions at parts of a structured state with backticks:{' '}
               <span className="font-mono text-xs">`ticket.messages[0].text`</span>.
             </li>
-            <li>A Noul is valid with criteria and no instructions.</li>
+            <li>A Noul is valid with true/false criteria and no instructions (checked live, 2026-09-22).</li>
           </ul>
         </Section>
       </div>

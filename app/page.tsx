@@ -8,7 +8,7 @@ import { allPresets } from '@/content/presets'
 import { PRICING } from '@/lib/pricing'
 
 const FACTS = [
-  { value: '70–500 ms', label: 'end to end, per TypeSafe' },
+  { value: '70–500 ms', label: 'end to end, per TypeSafe’s launch post' },
   { value: `$${PRICING.jev.inPerM}/1M`, label: 'input tokens · output free' },
   { value: '3 types', label: 'Choice · Score · Noul' },
   { value: '0 words', label: 'it never generates text' },
@@ -21,7 +21,7 @@ export default function Home() {
     <>
       <TopNav />
 
-      <main className="mx-auto max-w-[1100px] px-4 py-12">
+      <main id="main" className="mx-auto max-w-[1100px] px-4 py-12">
         <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           A playground for TypeSafe AI&rsquo;s Jev · built by Lyzr · no account needed
         </p>
@@ -45,7 +45,7 @@ export default function Home() {
                 <Link href="/play">Open the playground</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/learn">Learn it in 5 minutes</Link>
+                <Link href="/learn">Take the six lessons</Link>
               </Button>
             </div>
 
@@ -59,8 +59,11 @@ export default function Home() {
             </dl>
 
             <p className="mt-6 max-w-[46ch] text-xs text-muted-foreground">
-              Latency here is measured from our server, so it includes the network. TypeSafe reports
-              70–500 ms end to end.
+              Latency here is measured from our server, so it includes the network. TypeSafe&rsquo;s{' '}
+              <a className="text-brand hover:underline" href={SITE.links.launchPost}>
+                launch post
+              </a>{' '}
+              reports 70–500 ms end to end.
             </p>
           </div>
 
@@ -126,9 +129,9 @@ export default function Home() {
           <div>
             <h2 className="text-xl font-semibold">Where it breaks</h2>
             <p className="mt-2 max-w-[46ch] text-sm leading-relaxed text-muted-foreground">
-              Counting, dates, double negatives, arithmetic, injected instructions. TypeSafe
-              documents nine failure modes for jev-1.13; five of them run live here, each next to
-              the rewrite that works.
+              Counting, dates, structural invariants, injected instructions. TypeSafe documents nine
+              failure modes for jev-1.13; four of them run live here, plus one common Score mistake,
+              most of them beside the rewrite that works.
             </p>
             <Link href="/limits" className="mt-3 inline-block text-sm text-brand hover:underline">
               See the limits →
@@ -138,9 +141,9 @@ export default function Home() {
           <div>
             <h2 className="text-xl font-semibold">Jev next to an LLM</h2>
             <p className="mt-2 max-w-[46ch] text-sm leading-relaxed text-muted-foreground">
-              The same state and the same questions, sent to both from the same server in one
-              request. You see both answers, both latencies and both costs — and what the
-              comparison cannot tell you.
+              The same state and the same questions, sent to both at the same moment from the same
+              server. You see both answers, both latencies and both costs — and what the comparison
+              cannot tell you.
             </p>
             <Link href="/compare" className="mt-3 inline-block text-sm text-brand hover:underline">
               How we measure →

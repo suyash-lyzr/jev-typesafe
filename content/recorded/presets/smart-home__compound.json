@@ -1,0 +1,172 @@
+{
+  "preset": "smart-home",
+  "variant": "compound",
+  "recordedAt": "2026-09-21T19:02:17.937Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "Turn off the kitchen lights and lock the back door",
+    "model": "jev-latest",
+    "questions": {
+      "category": {
+        "type": "choice",
+        "instructions": "What category of request is this?",
+        "criteria": {
+          "smarthome_command": "An instruction to control a device in the home",
+          "information_request": "A question about the world, such as weather, news or facts",
+          "conversation": "Chat or small talk with no task attached",
+          "other": "Anything that fits none of the above"
+        }
+      },
+      "room": {
+        "type": "choice",
+        "instructions": "Which room or area is this request targeting?",
+        "criteria": {
+          "kitchen": null,
+          "living_room": null,
+          "bedroom": null,
+          "bathroom": null,
+          "whole_house": "The request covers the whole home, e.g. \"all the lights in the house\"",
+          "none_stated": "No room or area is named"
+        }
+      },
+      "device": {
+        "type": "choice",
+        "instructions": "What type of device is this request targeting?",
+        "criteria": {
+          "lights": null,
+          "thermostat": null,
+          "lock": null,
+          "speaker": null,
+          "blinds": null,
+          "none": "No device is targeted, or the request is not a device command"
+        }
+      },
+      "light_action": {
+        "type": "choice",
+        "instructions": "If this request targets lights, what action should be taken on them?",
+        "criteria": {
+          "turn_on": null,
+          "turn_off": null,
+          "set_level": "Set the brightness to a particular level rather than simply on or off",
+          "none": "The request does not ask for an action on lights"
+        }
+      },
+      "lock_action": {
+        "type": "choice",
+        "instructions": "If this request targets a lock, what action should be taken on it?",
+        "criteria": {
+          "lock": null,
+          "unlock": null,
+          "none": "The request does not ask for an action on a lock"
+        }
+      },
+      "level": {
+        "type": "choice",
+        "instructions": "If the request names a level or intensity, which bucket does it fall in?",
+        "criteria": {
+          "off": null,
+          "low": "Around a quarter or less",
+          "medium": "Around half",
+          "high": "Around three quarters",
+          "full": "All the way up",
+          "none_stated": "No level is named"
+        }
+      },
+      "is_compound": {
+        "type": "noul",
+        "instructions": "Does the request ask for more than one distinct action?"
+      },
+      "needs_llm": {
+        "type": "noul",
+        "instructions": "Does answering this request require generating free-form text rather than operating a device?"
+      }
+    }
+  },
+  "answers": {
+    "category": {
+      "type": "choice",
+      "choice": "smarthome_command",
+      "confidence": 0.99,
+      "probabilities": {
+        "information_request": 0,
+        "smarthome_command": 0.99,
+        "other": 0.01,
+        "conversation": 0
+      }
+    },
+    "room": {
+      "type": "choice",
+      "choice": "kitchen",
+      "confidence": 0.97,
+      "probabilities": {
+        "bedroom": 0,
+        "kitchen": 0.98,
+        "none_stated": 0,
+        "whole_house": 0.02,
+        "living_room": 0,
+        "bathroom": 0
+      }
+    },
+    "device": {
+      "type": "choice",
+      "choice": "lights",
+      "confidence": 0.65,
+      "probabilities": {
+        "none": 0.11,
+        "lights": 0.71,
+        "thermostat": 0,
+        "speaker": 0.01,
+        "lock": 0.17,
+        "blinds": 0
+      }
+    },
+    "light_action": {
+      "type": "choice",
+      "choice": "turn_off",
+      "confidence": 1,
+      "probabilities": {
+        "set_level": 0,
+        "none": 0,
+        "turn_off": 1,
+        "turn_on": 0
+      }
+    },
+    "lock_action": {
+      "type": "choice",
+      "choice": "lock",
+      "confidence": 1,
+      "probabilities": {
+        "none": 0,
+        "lock": 1,
+        "unlock": 0
+      }
+    },
+    "level": {
+      "type": "choice",
+      "choice": "none_stated",
+      "confidence": 0.73,
+      "probabilities": {
+        "low": 0,
+        "off": 0.22,
+        "full": 0,
+        "none_stated": 0.78,
+        "medium": 0,
+        "high": 0
+      }
+    },
+    "is_compound": {
+      "type": "noul",
+      "noul": 0.99
+    },
+    "needs_llm": {
+      "type": "noul",
+      "noul": 0.39
+    }
+  },
+  "usage": {
+    "input_tokens": 877,
+    "output_tokens": 357
+  },
+  "costUsd": 0.000036834,
+  "clientMs": 336
+}

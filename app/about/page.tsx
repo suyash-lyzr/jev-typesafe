@@ -53,9 +53,10 @@ export default function AboutPage() {
           minute and {LIMITS.compare.perDay} a day because it is the expensive half.
         </p>
         <p>
-          When the day&rsquo;s budget runs out, the site does not break. Presets fall back to answers
-          we recorded earlier, always labelled as replays, and everything readable stays readable. Live
-          runs return at 00:00 UTC. If you want to work without any of that, get your own key at{' '}
+          When the day&rsquo;s budget runs out, the site does not break. A preset you have not edited
+          shows the answer recorded for it, if it has one, labelled as a replay with its source and
+          date; anything else says live runs are paused. Every page stays readable, and live runs
+          return at 00:00 UTC. If you want to work without any of that, get your own key at{' '}
           <a className="text-brand hover:underline" href={SITE.links.console}>
             console.typesafe.ai
           </a>{' '}
@@ -74,8 +75,9 @@ export default function AboutPage() {
         </p>
         <p>
           Neither kind is a benchmark. Nothing here is graded against a right answer, several recorded
-          runs came from small demo sets in TypeSafe&rsquo;s cookbooks — eight citations, fifteen
-          messages, sixty filings — and some were recorded on jev-1.12 rather than the current model.
+          runs came from small demo sets in TypeSafe&rsquo;s cookbooks — the guardrail
+          cookbook&rsquo;s fifteen messages, the retrieval cookbook&rsquo;s twelve passages — and some
+          were recorded on jev-1.12 rather than the current model.
           They show the shape of a result. Where we quote TypeSafe&rsquo;s own performance claims, we
           say they are TypeSafe&rsquo;s and repeat their conditions.
         </p>
@@ -109,9 +111,10 @@ export default function AboutPage() {
         <p>
           Next.js on Vercel. The TypeSafe contract is mirrored once as a Zod schema that both the
           browser editor and the server proxy import, so a request that validates in the form validates
-          at the edge of the network too. Rate limiting and the spend cap run on Upstash Redis, and
-          spend is reserved before each call and reconciled after, so concurrent requests cannot
-          overshoot the cap.
+          at the edge of the network too. Rate limiting and the spend cap run on Upstash Redis. Spend
+          is reserved from an estimate before each call and settled against the real bill after, so
+          concurrent requests can pass the cap by at most the gap between an estimate and a bill —
+          fractions of a cent.
         </p>
         <p>
           The error fixtures under <span className="font-mono text-xs">content/recorded/errors</span>{' '}
@@ -128,7 +131,7 @@ export default function AboutPage() {
             <Link href="/play">Open the playground</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/learn">Learn it in 5 minutes</Link>
+            <Link href="/learn">Take the six lessons</Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href="/limits">Where it breaks</Link>

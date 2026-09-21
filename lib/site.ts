@@ -19,5 +19,11 @@ export const SITE = {
     pythonSdk: 'https://docs.typesafe.ai/sdk/python',
     jsSdk: 'https://docs.typesafe.ai/sdk/javascript',
     jaggedness: 'https://docs.typesafe.ai/model-jaggedness/jev-1.13',
+    lyzr: 'https://www.lyzr.ai',
+    launchPost: 'https://typesafe.ai/blog/introducing-system-one-models-and-jev',
+    homepage: 'https://typesafe.ai',
+    communityBenchmark: 'https://github.com/souvikr/jev-test',
+    /** Where drift reports go. Unset means the report links are hidden, not pointed at a guess. */
+    issues: process.env.NEXT_PUBLIC_ISSUES_URL?.trim() || null,
   },
 } as const

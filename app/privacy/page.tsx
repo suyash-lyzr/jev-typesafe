@@ -25,8 +25,8 @@ export default function PrivacyPage() {
     <PageShell>
       <h1 className="text-3xl font-semibold tracking-tight">Privacy</h1>
       <p className="mt-3 max-w-[62ch] text-base leading-relaxed text-muted-foreground">
-        There are no accounts, no cookies and no analytics on this site. This page describes what
-        actually happens when you press Run, in the same order the code does it.
+        There are no accounts and no cookies on this site. This page describes what actually
+        happens when you press Run, in the same order the code does it.
       </p>
 
       <Section title="What leaves your browser">
@@ -52,13 +52,15 @@ export default function PrivacyPage() {
 
       <Section title="What we log">
         <p>
-          One structured line per call. It contains the model id, which feature called it, the preset
-          slug if you opened one, how many questions you asked, the input token count, the upstream
-          latency and the retry count.
+          Our code writes one structured line per call: the model id, the preset slug if you opened
+          one, how many questions you asked, the input token count, the latency and the retry count
+          (for a comparison, also the LLM&rsquo;s model id, latency and whether it answered). Failed
+          calls log the error type and status instead.
         </p>
         <p>
-          It never contains your state, your instructions, your criteria or the answers. That is
-          enforced at the one place the line is written, not by policy.
+          None of those lines contains your state, your instructions, your criteria or the answers.
+          Separately, Vercel — which hosts the site — keeps its own request logs, which include the
+          requesting IP address, as any web host does.
         </p>
       </Section>
 
@@ -78,7 +80,8 @@ export default function PrivacyPage() {
 
       <Section title="What stays on your machine">
         <p>
-          Your run history and your session cost meter live in{' '}
+          Your run history, your session cost meter, your lesson progress, the last result of each
+          Limits demo you ran, and small settings such as the pane split live in{' '}
           <span className="font-mono text-xs">localStorage</span> in your own browser. We keep at most
           the last 30 runs there, trimmed if they grow past about 1.5 MB, with long states truncated.
           None of it is ever sent to us — clearing your browser storage deletes it permanently, and we
@@ -93,9 +96,10 @@ export default function PrivacyPage() {
 
       <Section title="No cookies, no tracking">
         <p>
-          The site sets no cookies and loads no analytics, tag manager or third-party script. Nothing
-          here follows you between pages or between visits. The Upstash analytics feature is explicitly
-          disabled.
+          The site sets no cookies and loads no tag manager or third-party script; even the fonts are
+          served from this domain. It counts page views with Vercel Web Analytics, which is cookieless
+          and served from this domain too — it records which page was viewed, never anything you type.
+          The Upstash analytics feature is explicitly disabled.
         </p>
       </Section>
 
@@ -105,8 +109,8 @@ export default function PrivacyPage() {
           to delete on request. If you believe you sent us something sensitive, the fastest remedy is
           to clear your browser storage and stop using any share link you generated; then reach us
           through{' '}
-          <a className="text-brand hover:underline" href={SITE.links.console}>
-            the contact route on Lyzr&rsquo;s site
+          <a className="text-brand hover:underline" href={SITE.links.lyzr}>
+            Lyzr&rsquo;s site
           </a>{' '}
           so we can check our logs for the corresponding line — though as described above, that line
           does not contain your content.

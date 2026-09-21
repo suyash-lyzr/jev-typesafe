@@ -1,6 +1,7 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string'
 import { z } from 'zod'
-import { Question, State, MODEL_RE, DEFAULT_MODEL } from './schema'
+import { Question, State, MODEL_RE, DEFAULT_MODEL, EditorQuestionId } from './schema'
+import { PolicySchema, reconcilePolicy } from './policy'
 
 /**
  * Sharing a request without a database, and without the request reaching a log.
@@ -20,21 +21,37 @@ export const SHARE_VERSION = 1
 export const SHARE_WARN_BYTES = 4_000
 export const SHARE_MAX_BYTES = 16_000
 
-const Envelope = z.object({
-  v: z.literal(SHARE_VERSION),
-  state: State,
-  stateMode: z.enum(['text', 'json']).default('text'),
-  model: z.string().regex(MODEL_RE).default(DEFAULT_MODEL),
-  questions: z.record(Question),
-  variants: z.record(Question).optional(),
-  policy: z.unknown().optional(),
-  compare: z.boolean().optional(),
-  title: z.string().max(120).optional(),
-})
+/**
+ * Everything in a link is untrusted: it is decoded on someone else's machine,
+ * and its policy ends up in the code they copy. Every field is validated —
+ * thresholds as numbers in range, ids in the question-id alphabet — and rules
+ * that point at questions the link does not contain are dropped.
+ */
+const Envelope = z
+  .object({
+    v: z.literal(SHARE_VERSION),
+    state: State,
+    stateMode: z.enum(['text', 'json']).optional(),
+    model: z.string().regex(MODEL_RE).default(DEFAULT_MODEL),
+    questions: z.record(EditorQuestionId, Question).refine((q) => Object.keys(q).length <= 100),
+    variants: z.record(EditorQuestionId, Question).optional(),
+    policy: PolicySchema.optional(),
+    compare: z.boolean().optional(),
+    title: z.string().max(120).optional(),
+  })
+  .transform((e) => ({
+    ...e,
+    // An object state is JSON whatever the link says; a string defaults to text.
+    stateMode: typeof e.state === 'string' ? (e.stateMode ?? 'text') : ('json' as const),
+    variants: e.variants
+      ? Object.fromEntries(Object.entries(e.variants).filter(([id]) => Object.hasOwn(e.questions, id)))
+      : undefined,
+    policy: e.policy ? reconcilePolicy(e.policy, Object.keys(e.questions)) : undefined,
+  }))
 
-export type ShareEnvelope = z.infer<typeof Envelope>
+export type ShareEnvelope = z.output<typeof Envelope>
 
-export function encodeShare(envelope: Omit<ShareEnvelope, 'v'>): string {
+export function encodeShare(envelope: Omit<z.input<typeof Envelope>, 'v'>): string {
   return compressToEncodedURIComponent(JSON.stringify({ v: SHARE_VERSION, ...envelope }))
 }
 

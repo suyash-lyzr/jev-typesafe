@@ -1,6 +1,9 @@
 import type { Preset, PresetVariant } from './types'
 import type { LoadInput } from '@/lib/store'
 import { defaultPolicy } from '@/lib/policy'
+import { requestHash } from '@/lib/serialize'
+import type { Answer, Question } from '@/lib/schema'
+import { OWN_RECORDINGS } from '../recorded/presets'
 
 import { firstRun } from './first-run'
 import { supportTriage } from './support-triage'
@@ -18,7 +21,7 @@ import { limitsPresets } from './limits'
 export * from './types'
 
 /** Gallery order: the first-run request first, then by how much setup each needs. */
-export const allPresets: Preset[] = [
+const authored: Preset[] = [
   firstRun,
   supportTriage,
   voiceBanking,
@@ -33,6 +36,42 @@ export const allPresets: Preset[] = [
   ...limitsPresets,
 ]
 
+/**
+ * Where the docs publish no numbers, a variant can still replay a response
+ * Jev Lab recorded itself (scripts/record-presets.ts) — labelled as ours, never
+ * as the docs'. A recording is only used while its request is byte-for-byte
+ * the one the variant sends now; edit the preset and the stale recording is
+ * simply ignored until it is re-recorded.
+ */
+function withOwnRecordings(preset: Preset): Preset {
+  return {
+    ...preset,
+    variants: preset.variants.map((variant) => {
+      if (variant.recorded) return variant
+      const own = OWN_RECORDINGS.find((r) => r.preset === preset.slug && r.variant === variant.id)
+      if (!own) return variant
+      const questions = variant.questions ?? preset.questions
+      const matches =
+        requestHash({ state: variant.state, questions }) ===
+        requestHash({ state: own.request.state as never, questions: own.request.questions as Record<string, Question> })
+      if (!matches) return variant
+      return {
+        ...variant,
+        recorded: {
+          source: 'Jev Lab (our own live run)',
+          model: own.model,
+          date: own.recordedAt.slice(0, 10),
+          answers: own.answers as Record<string, Answer>,
+          usage: own.usage,
+          note: 'The docs publish no numbers for this one, so this is a single run Jev Lab recorded itself — one answer, not a benchmark.',
+        },
+      }
+    }),
+  }
+}
+
+export const allPresets: Preset[] = authored.map(withOwnRecordings)
+
 export function getPreset(slug: string): Preset | null {
   return allPresets.find((p) => p.slug === slug) ?? null
 }
@@ -44,13 +83,19 @@ export function getVariant(preset: Preset, variantId?: string): PresetVariant {
 
 /**
  * A preset becomes editor state. A recorded response is shown straight away so
- * the reader sees a real answer before spending anything — and it is labelled
- * as a replay, never passed off as a live run.
+ * the reader sees a real answer before spending anything — labelled as a
+ * replay, with its source, model and date, and with no invented timing or
+ * cost: nothing was timed and it cost this site nothing.
  */
-export function presetToLoad(preset: Preset, variantId?: string): LoadInput {
+export function presetToLoad(
+  preset: Preset,
+  variantId?: string,
+  opts: { compare?: boolean } = {}
+): LoadInput {
   const variant = getVariant(preset, variantId)
   const questions = variant.questions ?? preset.questions
   const policy = variant.policy ?? preset.policy ?? defaultPolicy(questions)
+  const rec = variant.recorded
 
   return {
     state: variant.state,
@@ -60,16 +105,18 @@ export function presetToLoad(preset: Preset, variantId?: string): LoadInput {
     title: `${preset.title} · ${variant.label}`,
     presetId: preset.slug,
     variantId: variant.id,
-    recorded: variant.recorded
+    compare: opts.compare,
+    recorded: rec
       ? {
-          answers: variant.recorded.answers,
-          request: { state: variant.state, model: variant.recorded.model, questions },
-          model: variant.recorded.model,
-          usage: variant.recorded.usage ?? { input_tokens: 0, output_tokens: 0 },
-          timing: { jevMs: 0, serverMs: 0, retries: 0 },
-          clientMs: 0,
-          costUsd: 0,
+          answers: rec.answers,
+          request: { state: variant.state, model: rec.model, questions },
+          model: rec.model,
+          usage: rec.usage ?? null,
+          timing: null,
+          clientMs: null,
+          costUsd: null,
           replay: true,
+          provenance: { source: rec.source, model: rec.model, date: rec.date, note: rec.note },
           hash: '',
         }
       : null,

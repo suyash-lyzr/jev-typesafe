@@ -77,10 +77,12 @@ export default function PresetsPage() {
       })}
 
       <p className="mt-10 max-w-[70ch] text-xs text-muted-foreground">
-        Recorded numbers in these presets come from docs.typesafe.ai, with the page, model id and
-        date shown on each one. Several were recorded on jev-1.12 from small demo sets — eight
-        citations, fifteen messages, sixty filings. They show the shape of a result, not a
-        benchmark, and a live run can differ.
+        Recorded numbers in these presets come from one of two places, and every replay says
+        which: Jev Lab&rsquo;s own runs of the exact request, with the model id and date, or numbers
+        quoted from docs.typesafe.ai, with the page they came from. Several quoted ones were recorded on jev-1.12
+        from small demo sets — the guardrail cookbook&rsquo;s fifteen messages, the retrieval
+        cookbook&rsquo;s twelve passages. They show the shape of a result, not a benchmark, and a
+        live run can differ. Variants without a recording say so and run live.
       </p>
     </PageShell>
   )

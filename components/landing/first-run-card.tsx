@@ -11,6 +11,7 @@ import { formatUsd } from '@/lib/pricing'
 import type { Answer, RunError } from '@/lib/schema'
 import { errorCardCopy } from '@/lib/errors'
 import { InlineBanner } from '@/components/ui/inline-banner'
+import { runOnce } from '@/lib/run-once'
 
 /**
  * The landing card.
@@ -39,34 +40,23 @@ export function FirstRunCard() {
   async function runLive() {
     setRunning(true)
     setError(null)
-    try {
-      const res = await fetch('/api/jev', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          request: { state: variant.state, model: 'jev-latest', questions: firstRun.questions },
-          feature: 'landing',
-          presetId: firstRun.slug,
-        }),
-      })
-      const body = await res.json()
-      if (!res.ok) {
-        setError(body as RunError)
-        return
-      }
-      setAnswers(body.answers)
-      setLive({
-        model: body.model,
-        jevMs: body.timing.jevMs,
-        inputTokens: body.usage.input_tokens,
-        outputTokens: body.usage.output_tokens,
-        costUsd: body.costUsd,
-      })
-    } catch {
-      setError({ error: 'network', message: 'Could not reach the server.' })
-    } finally {
-      setRunning(false)
+    const out = await runOnce(
+      { state: variant.state, model: 'jev-latest', questions: firstRun.questions },
+      { feature: 'landing', presetId: firstRun.slug, variantId: variant.id }
+    )
+    setRunning(false)
+    if (!out.ok) {
+      setError(out.error)
+      return
     }
+    setAnswers(out.result.answers)
+    setLive({
+      model: out.result.model,
+      jevMs: out.result.timing.jevMs,
+      inputTokens: out.result.usage.input_tokens,
+      outputTokens: out.result.usage.output_tokens,
+      costUsd: out.result.costUsd,
+    })
   }
 
   return (
@@ -76,10 +66,10 @@ export function FirstRunCard() {
           First run
         </h2>
         {live ? (
-          <Chip variant="brand">LIVE</Chip>
+          <Chip variant="default">live</Chip>
         ) : (
-          <Chip variant="default" title={`Recorded on ${recorded.date} from ${recorded.model}, not computed now.`}>
-            replay · recorded {recorded.date}
+          <Chip variant="default" title={`Quoted from ${recorded.source}, ${recorded.model}. Not computed now.`}>
+            replay · from the docs
           </Chip>
         )}
       </div>
@@ -128,8 +118,17 @@ export function FirstRunCard() {
       <p className="mt-4 border-t border-border pt-3 font-mono text-[11px] tabular text-muted-foreground">
         {live
           ? `${live.model} · ${live.jevMs} ms · ${live.inputTokens} in / ${live.outputTokens} out · ${formatUsd(live.costUsd)}`
-          : `${recorded.model} · recorded · ${recorded.usage?.input_tokens} in / ${recorded.usage?.output_tokens} out`}
+          : `${recorded.model} · ${recorded.usage?.input_tokens} in / ${recorded.usage?.output_tokens} out · as printed in the docs`}
       </p>
+      {!live && (
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Quoted from{' '}
+          <a className="text-brand hover:underline" href={`https://${recorded.source}`} target="_blank" rel="noreferrer">
+            {recorded.source}
+          </a>
+          , read {recorded.date}. Press Run to ask the model now.
+        </p>
+      )}
 
       <div className="mt-3 flex flex-wrap gap-2">
         <Button size="sm" onClick={runLive} disabled={running}>

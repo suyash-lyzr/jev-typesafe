@@ -5,11 +5,10 @@ import { cn } from '@/lib/utils'
 import { Chip } from '@/components/ui/chip'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
-import { Button } from '@/components/ui/button'
 import { InlineBanner } from '@/components/ui/inline-banner'
-import { AnswerView, BandChip, ConfidenceChip } from './answer-views'
-import { usePlayground, groupAnswers, type ResultTab } from '@/lib/store'
-import { evaluatePolicy } from '@/lib/policy'
+import { AnswerView, BandChip, ConfidenceChip, NoulChip } from './answer-views'
+import { usePlayground, groupAnswers, type ResultTab, type LastRun } from '@/lib/store'
+import { evaluatePolicy, type Band, type NoulVerdict } from '@/lib/policy'
 import { errorCardCopy } from '@/lib/errors'
 import { formatUsd, perMillionRequests } from '@/lib/pricing'
 import type { Answer, Question } from '@/lib/schema'
@@ -48,6 +47,42 @@ function RunningMs() {
   )
 }
 
+function linkFor(source: string): string | null {
+  if (/^https?:\/\//.test(source)) return source
+  if (/^docs\.typesafe\.ai\//.test(source)) return `https://${source}`
+  return null
+}
+
+/**
+ * Where a replayed answer came from, stated on the page rather than hidden in
+ * a tooltip — including the note, which is often the part that matters
+ * ("these numbers belong to the docs' ticket, not ours").
+ */
+export function ProvenanceNote({ run }: { run: LastRun }) {
+  if (!run.replay || !run.provenance) return null
+  const p = run.provenance
+  const href = linkFor(p.source)
+
+  return (
+    <div className="mb-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+      <p>
+        <span className="font-medium text-foreground">Recorded, not live.</span>{' '}
+        {p.source.startsWith('Jev Lab') ? 'Recorded by' : 'Quoted from'}{' '}
+        {href ? (
+          <a className="text-brand hover:underline" href={href} target="_blank" rel="noreferrer">
+            {p.source}
+          </a>
+        ) : (
+          p.source
+        )}{' '}
+        (<span className="font-mono">{p.model}</span>, {p.date}). Press Run to ask the model now — a
+        live answer can differ.
+      </p>
+      {p.note && <p className="mt-1">{p.note}</p>}
+    </div>
+  )
+}
+
 export function RunStrip() {
   const { lastRun, running, isDirtySinceRun } = usePlayground()
   const dirty = isDirtySinceRun()
@@ -69,37 +104,90 @@ export function RunStrip() {
     )
   }
 
-  const clientOverhead = Math.max(0, lastRun.clientMs - lastRun.timing.serverMs)
+  // A replay was never timed and cost this site nothing: show neither.
+  if (lastRun.replay || !lastRun.timing) {
+    return (
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-4 py-2 font-mono text-xs text-muted-foreground">
+        <Chip variant="warning">replay</Chip>
+        <span className="text-foreground">{lastRun.model}</span>
+        {lastRun.provenance && <span>recorded {lastRun.provenance.date}</span>}
+        {lastRun.usage && lastRun.usage.input_tokens > 0 && (
+          <span className="tabular">
+            {lastRun.usage.input_tokens} in / {lastRun.usage.output_tokens} out (as recorded)
+          </span>
+        )}
+        {dirty && <Chip variant="default">request changed since recording</Chip>}
+      </div>
+    )
+  }
+
+  const clientOverhead =
+    lastRun.clientMs != null ? Math.max(0, lastRun.clientMs - lastRun.timing.serverMs) : null
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-4 py-2 font-mono text-xs text-muted-foreground">
       <span className="text-foreground">{lastRun.model}</span>
-      <span>·</span>
+      <span aria-hidden>·</span>
       {/* Split deliberately: TypeSafe publishes no timing header, so neither
           number may be presented as the model's own compute time. */}
       <span className="tabular">API {lastRun.timing.jevMs} ms</span>
-      <span className="tabular">+{clientOverhead} ms to you</span>
-      <span>·</span>
-      <span className="tabular">
-        {lastRun.usage.input_tokens} in / {lastRun.usage.output_tokens} out
-      </span>
-      <span>·</span>
-      <span className="tabular" title={`≈ ${perMillionRequests(lastRun.costUsd)} per million requests like this one`}>
-        {formatUsd(lastRun.costUsd)}
-      </span>
-      {lastRun.timing.retries > 0 && <Chip variant="outline">{lastRun.timing.retries} retries</Chip>}
-      {lastRun.replay && <Chip variant="warning">replay</Chip>}
+      {clientOverhead != null && <span className="tabular">+{clientOverhead} ms to you</span>}
+      {lastRun.usage && (
+        <>
+          <span aria-hidden>·</span>
+          <span className="tabular">
+            {lastRun.usage.input_tokens} in / {lastRun.usage.output_tokens} out
+          </span>
+        </>
+      )}
+      {lastRun.costUsd != null && (
+        <>
+          <span aria-hidden>·</span>
+          <span className="tabular" title={`≈ ${perMillionRequests(lastRun.costUsd)} per million requests like this one`}>
+            {formatUsd(lastRun.costUsd)}
+          </span>
+        </>
+      )}
+      {lastRun.timing.retries > 0 && <Chip variant="outline">{lastRun.timing.retries} retry</Chip>}
       {dirty && <Chip variant="default">request changed since run</Chip>}
+    </div>
+  )
+}
+
+function VariantColumn({
+  label,
+  answer,
+  showGuide,
+  noulThresholds,
+}: {
+  label: string
+  answer?: Answer
+  showGuide: boolean
+  noulThresholds?: { yes: number; no: number }
+}) {
+  return (
+    <div>
+      <div className="mb-2 flex items-center gap-2">
+        <p className="text-xs font-medium">{label}</p>
+        {answer && answer.type !== 'noul' && <ConfidenceChip confidence={answer.confidence} />}
+      </div>
+      {answer ? (
+        <AnswerView answer={answer} showGuide={showGuide} noulThresholds={noulThresholds} />
+      ) : (
+        <p className="text-xs text-muted-foreground">No answer came back for this variant.</p>
+      )}
     </div>
   )
 }
 
 function ResultCard({
   id,
-  answer,
-  variantB,
+  a,
+  b,
+  paired,
   question,
   band,
+  noulVerdict,
   greyed,
   showGuide,
   noulThresholds,
@@ -107,10 +195,12 @@ function ResultCard({
   onSelect,
 }: {
   id: string
-  answer: Answer
-  variantB?: Answer
+  a?: Answer
+  b?: Answer
+  paired: boolean
   question?: Question
-  band?: 'act' | 'review' | 'escalate'
+  band?: Band
+  noulVerdict?: NoulVerdict
   greyed: boolean
   showGuide: boolean
   noulThresholds?: { yes: number; no: number }
@@ -124,23 +214,34 @@ function ResultCard({
         ? JSON.stringify(question.instructions)
         : ''
 
-  const typeLabel = answer.type.toUpperCase()
+  const first = a ?? b
+  if (!first) return null
 
   return (
-    <div
-      onClick={onSelect}
+    <article
+      aria-label={`${id} answer`}
       className={cn(
-        'rounded-lg border bg-card p-4 transition-opacity duration-base',
+        'rounded-lg border bg-card p-4 text-left transition-opacity duration-base',
         selected ? 'border-brand' : 'border-border',
         greyed && 'opacity-50'
       )}
     >
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-sm font-medium">{id}</span>
-        <Chip variant="outline">{typeLabel}</Chip>
-        {answer.type !== 'noul' && <ConfidenceChip confidence={answer.confidence} />}
+        <Chip variant="outline">{first.type.toUpperCase()}</Chip>
+        {!paired && first.type !== 'noul' && <ConfidenceChip confidence={first.confidence} />}
         {band && <BandChip band={band} />}
+        {noulVerdict && <NoulChip verdict={noulVerdict} />}
+        {paired && <Chip variant="default">A/B · policy follows A</Chip>}
         {greyed && <Chip variant="outline">not on this path</Chip>}
+        <button
+          type="button"
+          onClick={onSelect}
+          aria-pressed={selected}
+          className="ml-auto rounded text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        >
+          {selected ? 'Unhighlight question' : 'Show question'}
+        </button>
       </div>
 
       {instructions && (
@@ -150,27 +251,21 @@ function ResultCard({
       )}
 
       <div className="mt-3">
-        {variantB ? (
+        {paired ? (
           <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <p className="mb-2 text-xs font-medium">Variant A</p>
-              <AnswerView answer={answer} showGuide={showGuide} noulThresholds={noulThresholds} />
-            </div>
-            <div>
-              <p className="mb-2 text-xs font-medium">Variant B</p>
-              <AnswerView answer={variantB} showGuide={showGuide} noulThresholds={noulThresholds} />
-            </div>
+            <VariantColumn label="Variant A" answer={a} showGuide={showGuide} noulThresholds={noulThresholds} />
+            <VariantColumn label="Variant B" answer={b} showGuide={showGuide} noulThresholds={noulThresholds} />
           </div>
         ) : (
-          <AnswerView answer={answer} showGuide={showGuide} noulThresholds={noulThresholds} />
+          <AnswerView answer={first} showGuide={showGuide} noulThresholds={noulThresholds} />
         )}
       </div>
 
-      {variantB && showGuide && (
+      {paired && a && b && showGuide && (
         <p className="mt-3 border-t border-border pt-2 text-xs text-muted-foreground">
           Both variants travelled in one request and were evaluated in parallel, so the second cost
           only its own question tokens.
-          {answer.type !== variantB.type && (
+          {a.type !== b.type && (
             <>
               {' '}
               They are different question types, so the numbers are not comparable: the docs record
@@ -180,19 +275,19 @@ function ResultCard({
           )}
         </p>
       )}
-    </div>
+    </article>
   )
 }
 
 export function AnswersTab() {
-  const { lastRun, questions, variants, policy, selectedQuestion, selectQuestion, running } =
+  const { lastRun, questions, policy, selectedQuestion, selectQuestion, running, notice, dismissNotice } =
     usePlayground()
   const [showGuide, setShowGuide] = React.useState(true)
 
   if (running) {
     const count = Object.keys(questions).length || 3
     return (
-      <div className="space-y-3 p-4">
+      <div className="space-y-3 p-4" aria-busy="true">
         {Array.from({ length: count }).map((_, i) => (
           <div key={i} className="rounded-lg border border-border bg-card p-4">
             <Skeleton className="h-4 w-32" />
@@ -207,23 +302,36 @@ export function AnswersTab() {
     )
   }
 
+  const noticeBanner = notice ? (
+    <InlineBanner variant="info" className="mb-3" onDismiss={dismissNotice}>
+      {notice}
+    </InlineBanner>
+  ) : null
+
   if (!lastRun) {
     return (
-      <div className="flex min-h-[320px] flex-col items-center justify-center p-8 text-center">
-        <h3 className="text-xl font-semibold">Run to see answers</h3>
-        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-          Jev evaluates every question against the state in parallel and hands back typed values
-          your code can branch on.
-        </p>
+      <div className="p-4">
+        {noticeBanner}
+        <div className="flex min-h-[320px] flex-col items-center justify-center p-8 text-center">
+          <h3 className="text-xl font-semibold">Run to see answers</h3>
+          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+            Jev evaluates every question against the state in parallel and hands back typed values
+            your code can branch on. Nothing runs until you press Run.
+          </p>
+        </div>
       </div>
     )
   }
 
   const outcome = evaluatePolicy(policy, lastRun.answers, questions)
   const groups = groupAnswers(lastRun.answers)
+  const missing = Object.keys(questions).filter((id) => !groups.some((g) => g.id === id))
 
   return (
     <div className="p-4">
+      {noticeBanner}
+      <ProvenanceNote run={lastRun} />
+
       <div className="mb-3 flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
           {groups.length} answer{groups.length === 1 ? '' : 's'} from one request
@@ -235,22 +343,22 @@ export function AnswersTab() {
       </div>
 
       <div className="space-y-3">
-        {groups.map(({ id, a, b }) => {
+        {groups.map(({ id, a, b, paired }) => {
           const noulRule = policy.rules.find((r) => r.q === id && r.kind === 'noul')
           return (
             <ResultCard
               key={id}
               id={id}
-              answer={a}
-              variantB={b}
-              question={questions[id]}
+              a={a}
+              b={b}
+              paired={paired}
+              question={Object.hasOwn(questions, id) ? questions[id] : undefined}
               band={outcome.bands[id]}
+              noulVerdict={outcome.nouls[id]}
               greyed={outcome.greyed.includes(id)}
               showGuide={showGuide}
               noulThresholds={
-                noulRule && noulRule.kind === 'noul'
-                  ? { yes: noulRule.yes, no: noulRule.no }
-                  : undefined
+                noulRule && noulRule.kind === 'noul' ? { yes: noulRule.yes, no: noulRule.no } : undefined
               }
               selected={selectedQuestion === id}
               onSelect={() => selectQuestion(selectedQuestion === id ? null : id)}
@@ -258,6 +366,14 @@ export function AnswersTab() {
           )
         })}
       </div>
+
+      {missing.length > 0 && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          {lastRun.replay
+            ? `The recording has no answer for ${missing.join(', ')} — the source did not publish one. Run it to ask the model.`
+            : `No answer yet for ${missing.join(', ')}: added after this run. Run again to include it.`}
+        </p>
+      )}
 
       {outcome.greyed.length > 0 && (
         <p className="mt-3 text-xs text-muted-foreground">
@@ -277,7 +393,7 @@ export function ErrorCard() {
   const variant = error.error === 'validation' ? 'danger' : 'warning'
 
   return (
-    <div className="p-4">
+    <div className="p-4" role="alert">
       <InlineBanner variant={variant}>
         <div>
           <p className="font-medium">{title}</p>
@@ -294,19 +410,42 @@ export function ErrorCard() {
 export function ResultTabs({ children }: { children: React.ReactNode }) {
   const { tab, setTab, compareOn, lastRun } = usePlayground()
   const showCompare = compareOn || Boolean(lastRun?.compare)
+  const tabs = TABS.filter((t) => t.id !== 'compare' || showCompare)
+  const refs = React.useRef<Record<string, HTMLButtonElement | null>>({})
+
+  // If the visible tab disappears (compare switched off), fall back to Answers.
+  React.useEffect(() => {
+    if (!tabs.some((t) => t.id === tab)) setTab('answers')
+  }, [tabs, tab, setTab])
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'Home' && e.key !== 'End') return
+    e.preventDefault()
+    const i = tabs.findIndex((t) => t.id === tab)
+    const next =
+      e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length
+    setTab(tabs[next].id)
+    refs.current[tabs[next].id]?.focus()
+  }
 
   return (
     <div className="flex h-full flex-col">
       <RunStrip />
-      <div className="flex gap-1 border-b border-border px-2" role="tablist">
-        {TABS.filter((t) => t.id !== 'compare' || showCompare).map((t) => (
+      <div className="flex gap-1 overflow-x-auto border-b border-border px-2" role="tablist" aria-label="Result views" onKeyDown={onKeyDown}>
+        {tabs.map((t) => (
           <button
             key={t.id}
+            ref={(el) => {
+              refs.current[t.id] = el
+            }}
+            id={`result-tab-${t.id}`}
             role="tab"
             aria-selected={tab === t.id}
+            aria-controls="result-panel"
+            tabIndex={tab === t.id ? 0 : -1}
             onClick={() => setTab(t.id)}
             className={cn(
-              'border-b-2 px-3 py-2 text-[13px] font-medium transition-colors duration-fast',
+              'shrink-0 border-b-2 px-3 py-2 text-[13px] font-medium transition-colors duration-fast',
               tab === t.id
                 ? 'border-foreground text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -316,9 +455,14 @@ export function ResultTabs({ children }: { children: React.ReactNode }) {
           </button>
         ))}
       </div>
-      <div className="flex-1 overflow-y-auto">{children}</div>
+      <div
+        id="result-panel"
+        role="tabpanel"
+        aria-labelledby={`result-tab-${tab}`}
+        className="flex-1 overflow-y-auto"
+      >
+        {children}
+      </div>
     </div>
   )
 }
-
-export { Button }

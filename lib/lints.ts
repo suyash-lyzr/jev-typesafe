@@ -7,6 +7,7 @@ import {
   TOKEN_BUDGET_TOTAL,
   estimateTokens,
   noulHasContent,
+  isEditorQuestionId,
   stateChars,
 } from './schema'
 import type { Question, State } from './schema'
@@ -38,7 +39,7 @@ export type LintFixKind =
   | { type: 'split-noul'; questionId: string }
 
 const SECRET_PATTERNS: Array<[RegExp, string]> = [
-  [/\bsk-[A-Za-z0-9_-]{16,}/, 'an OpenAI-style secret key'],
+  [/\bsk-(?:proj-|live_|test_)?(?=[A-Za-z0-9_-]*\d)[A-Za-z0-9_-]{20,}/, 'an OpenAI- or Stripe-style secret key'],
   [/\bAKIA[0-9A-Z]{12,}/, 'an AWS access key id'],
   [/\bghp_[A-Za-z0-9]{20,}/, 'a GitHub token'],
   [/\bxox[bpsa]-[A-Za-z0-9-]{10,}/, 'a Slack token'],
@@ -146,11 +147,11 @@ export function lintRequest(
     })
   }
 
-  // CJK, Hangul, Cyrillic, Arabic, Devanagari — the scripts the docs call out
-  // as handled but less accurate than English.
+  // The docs call out CJK as handled but less accurate than English; other
+  // non-Latin scripts get the same caution, since only English is claimed.
   const nonLatin = (
     stateText.match(
-      /[　-鿿가-힯Ѐ-ӿ؀-ۿऀ-ॿ＀-￯]/g
+      /[\u3000-\u9fff\uac00-\ud7af\u0400-\u04ff\u0600-\u06ff\u0900-\u097f\uff00-\uffef]/g
     ) ?? []
   ).length
   if (stateText.length > 40 && nonLatin / stateText.length > 0.3) {
@@ -170,19 +171,36 @@ export function lintRequest(
   }
 
   let totalTokens = stateTokens
-  for (const [id, q] of allQuestions) {
-    totalTokens += estimateTokens(q)
-    const variant = variants[id]
-    if (variant) totalTokens += estimateTokens(variant)
 
-    const text = instructionsText(q.type === 'noul' ? q.instructions : q.instructions)
+  // Every question, and every B variant beside it: a variant travels in the
+  // same request, so an empty or oversized one fails the whole run.
+  const targets: Array<{ id: string; q: Question; label: string; isVariant: boolean }> = []
+  for (const [id, q] of allQuestions) {
+    targets.push({ id, q, label: id, isVariant: false })
+    if (Object.hasOwn(variants, id)) targets.push({ id, q: variants[id], label: `${id} (variant B)`, isVariant: true })
+
+    if (!isEditorQuestionId(id)) {
+      lints.push({
+        id: 'bad-id',
+        questionId: id,
+        severity: 'block',
+        message: /__[AB]$/.test(id)
+          ? `"${id}" ends in __A or __B, which the A/B mechanism reserves. Rename it.`
+          : `"${id}" is not a valid question id. Use letters, digits, _ or -, up to 64 characters.`,
+      })
+    }
+  }
+
+  for (const { id, q, label, isVariant } of targets) {
+    totalTokens += estimateTokens(q)
+    const text = instructionsText(q.instructions)
 
     if (q.type !== 'noul' && !text.trim()) {
       lints.push({
         id: 'empty-instructions',
         questionId: id,
         severity: 'block',
-        message: `${id} has no instructions. The question ids are never sent to the model, so the instruction carries the whole question.`,
+        message: `${label} has no instructions. The question ids are never sent to the model, so the instruction carries the whole question.`,
       })
     }
 
@@ -191,7 +209,7 @@ export function lintRequest(
         id: 'empty-noul',
         questionId: id,
         severity: 'block',
-        message: `${id} needs instructions or true/false criteria.`,
+        message: `${label} needs instructions or true/false criteria.`,
       })
     }
 
@@ -203,7 +221,7 @@ export function lintRequest(
             id: 'unresolved-path',
             questionId: id,
             severity: 'warn',
-            message: `${id} points at \`${path}\`, which is not in the state.`,
+            message: `${label} points at \`${path}\`, which is not in the state.`,
           })
         }
       }
@@ -217,14 +235,14 @@ export function lintRequest(
           id: 'too-many-options',
           questionId: id,
           severity: 'block',
-          message: `${id} has ${keys.length} options. Too many choices. Must have at most ${MAX_CHOICE_OPTIONS} choices.`,
+          message: `${label} has ${keys.length} options. Too many choices. Must have at most ${MAX_CHOICE_OPTIONS} choices.`,
         })
       } else if (keys.length > 240) {
         lints.push({
           id: 'many-options',
           questionId: id,
           severity: 'info',
-          message: `${id} has ${keys.length} options. The docs call a Choice reliable to around 240.`,
+          message: `${label} has ${keys.length} options. The docs call a Choice reliable to around 240.`,
         })
       }
 
@@ -233,7 +251,7 @@ export function lintRequest(
           id: 'one-option',
           questionId: id,
           severity: 'warn',
-          message: `${id} has a single option, so it can only return that option at probability 1.0. The API accepts it; it just cannot tell you anything.`,
+          message: `${label} has a single option, so it can only return that option at probability 1.0. The API accepts it; it just cannot tell you anything.`,
         })
       }
 
@@ -243,8 +261,8 @@ export function lintRequest(
           id: 'no-escape-option',
           questionId: id,
           severity: 'warn',
-          message: `${id} has no escape option. Probabilities always sum to 1, so without one the model must pick a listed option even when none fits.`,
-          fix: { label: 'Add "other"', kind: { type: 'add-escape-option', questionId: id } },
+          message: `${label} has no escape option. Probabilities always sum to 1, so without one the model must pick a listed option even when none fits.`,
+          fix: isVariant ? undefined : { label: 'Add "other"', kind: { type: 'add-escape-option', questionId: id } },
           learnHref: '/learn/choice',
         })
       }
@@ -258,8 +276,8 @@ export function lintRequest(
           id: 'too-many-levels',
           questionId: id,
           severity: 'block',
-          message: `${id} has ${levels.length} levels. Too many score levels. Must have at most ${MAX_SCORE_LEVELS} levels.`,
-          fix: { label: `Keep the first ${MAX_SCORE_LEVELS}`, kind: { type: 'trim-levels', questionId: id } },
+          message: `${label} has ${levels.length} levels. Too many score levels. Must have at most ${MAX_SCORE_LEVELS} levels.`,
+          fix: isVariant ? undefined : { label: `Keep the first ${MAX_SCORE_LEVELS}`, kind: { type: 'trim-levels', questionId: id } },
         })
       }
 
@@ -268,7 +286,7 @@ export function lintRequest(
           id: 'one-level',
           questionId: id,
           severity: 'warn',
-          message: `${id} has a single level, so the score can only be 0.0. The API accepts it; it just cannot place anything.`,
+          message: `${label} has a single level, so the score can only be 0.0. The API accepts it; it just cannot place anything.`,
         })
       }
 
@@ -277,7 +295,7 @@ export function lintRequest(
           id: 'numeric-levels',
           questionId: id,
           severity: 'warn',
-          message: `${id} describes its levels with numbers. Each level is judged on its own, so "2 is worst" means nothing to the model — describe the situation instead.`,
+          message: `${label} describes its levels with numbers. Each level is judged on its own, so "2 is worst" means nothing to the model — describe the situation instead.`,
           learnHref: '/limits#numeric-levels',
         })
       }
@@ -291,17 +309,17 @@ export function lintRequest(
           id: 'compound-noul',
           questionId: id,
           severity: 'warn',
-          message: `${id} looks like it asks two things at once. The model has to judge both, and the probability means less. Ask two Nouls and combine them in code.`,
+          message: `${label} looks like it asks two things at once. The model has to judge both, and the probability means less. Ask two Nouls and combine them in code.`,
           learnHref: '/learn/noul',
         })
       }
 
-      if (/\b(free of|without|does not|doesn't|never|no )\b/.test(lower)) {
+      if (/\b(free of|without|not|never|no|none)\b|n[’']t\b/.test(lower)) {
         lints.push({
           id: 'negative-noul',
           questionId: id,
           severity: 'warn',
-          message: `${id} is phrased negatively. Word it so a high value means yes, or code reading it later will get it backwards.`,
+          message: `${label} is phrased negatively. Word it so a high value means yes, or code reading it later will get it backwards.`,
           learnHref: '/learn/noul',
         })
       }
@@ -311,7 +329,7 @@ export function lintRequest(
           id: 'degree-noul',
           questionId: id,
           severity: 'warn',
-          message: `${id} asks about degree. A Noul of 0.5 means the model gives yes and no equal probability, not "medium" — use a Score for a spectrum.`,
+          message: `${label} asks about degree. A Noul of 0.5 means the model gives yes and no equal probability, not "medium" — use a Score for a spectrum.`,
           learnHref: '/learn/noul',
         })
       }
@@ -324,7 +342,7 @@ export function lintRequest(
         id: 'counting',
         questionId: id,
         severity: 'warn',
-        message: `${id} asks the model to count. Jev recognises the shape of an answer rather than tallying — ask one question per item and add them up in code.`,
+        message: `${label} asks the model to count. Jev recognises the shape of an answer rather than tallying — ask one question per item and add them up in code.`,
         learnHref: '/limits#math',
       })
     }
@@ -333,7 +351,7 @@ export function lintRequest(
         id: 'date-math',
         questionId: id,
         severity: 'warn',
-        message: `${id} compares dates. Jev reads dates as text, not as ordered quantities — extract the parts and compare them in code.`,
+        message: `${label} compares dates. Jev reads dates as text, not as ordered quantities — extract the parts and compare them in code.`,
         learnHref: '/limits#dates',
       })
     }

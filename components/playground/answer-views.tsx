@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { Chip } from '@/components/ui/chip'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import type { Answer, ChoiceAnswer, NoulAnswer, ScoreAnswer } from '@/lib/schema'
-import { bandLabel, type Band } from '@/lib/policy'
+import { bandLabel, noulLabel, type Band, type NoulVerdict } from '@/lib/policy'
 
 /**
  * How an answer is read.
@@ -43,14 +43,27 @@ export function BandChip({ band }: { band: Band }) {
   return <Chip variant={variant}>{bandLabel(band)}</Chip>
 }
 
+/**
+ * A Noul's verdict says what the probability means, not what to do: a
+ * confident "no" is neutral, only "unsure" asks for a person.
+ */
+export function NoulChip({ verdict }: { verdict: NoulVerdict }) {
+  return <Chip variant={verdict === 'unsure' ? 'warning' : 'default'}>{noulLabel(verdict)}</Chip>
+}
+
 export function ConfidenceChip({ confidence }: { confidence: number }) {
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className="cursor-help font-mono text-xs tabular text-muted-foreground">
+          <button
+            type="button"
+            onClick={(e) => e.stopPropagation()}
+            className="cursor-help rounded font-mono text-xs tabular text-muted-foreground"
+            aria-label={`Confidence ${confidence.toFixed(2)}. What this means`}
+          >
             conf {confidence.toFixed(2)}
-          </span>
+          </button>
         </TooltipTrigger>
         <TooltipContent className="max-w-xs">
           Derived by TypeSafe from how peaked the probability distribution is. It describes the
@@ -251,7 +264,7 @@ export function NoulTrack({
   no?: number
 }) {
   const v = answer.noul
-  const zone = v >= yes ? 'yes' : v <= no ? 'no' : 'unsure'
+  const zone = v >= yes ? 'yes' : v < no ? 'no' : 'unsure'
 
   return (
     <div>

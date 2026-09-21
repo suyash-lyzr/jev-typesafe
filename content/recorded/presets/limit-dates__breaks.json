@@ -1,0 +1,31 @@
+{
+  "preset": "limit-dates",
+  "variant": "breaks",
+  "recordedAt": "2026-09-21T20:09:01.477Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "start": "2026-02-20",
+      "end": "2026-03-02"
+    },
+    "model": "jev-latest",
+    "questions": {
+      "gap_over_10": {
+        "type": "noul",
+        "instructions": "Is the gap between `start` and `end` more than 10 days?"
+      }
+    }
+  },
+  "answers": {
+    "gap_over_10": {
+      "type": "noul",
+      "noul": 0.94
+    }
+  },
+  "usage": {
+    "input_tokens": 317,
+    "output_tokens": 24
+  },
+  "costUsd": 0.000013314,
+  "clientMs": 839
+}

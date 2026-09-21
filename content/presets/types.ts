@@ -15,7 +15,11 @@ export interface RecordedRun {
   source: string
   /** The model that answered. Aliases move, so this is always the versioned id. */
   model: string
-  /** ISO date of the recording. */
+  /**
+   * ISO date. For a cookbook this is the date the cookbook states it was
+   * recorded; the primitive pages print no date, so for those it is the date
+   * the page was read.
+   */
   date: string
   answers: Record<string, Answer>
   usage?: { input_tokens: number; output_tokens: number }

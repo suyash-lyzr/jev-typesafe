@@ -1,0 +1,75 @@
+{
+  "preset": "model-routing",
+  "variant": "order-lookup",
+  "recordedAt": "2026-09-21T19:02:16.422Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "Where is order A-2231?",
+    "model": "jev-latest",
+    "questions": {
+      "intent": {
+        "type": "choice",
+        "instructions": "What is the customer asking about?",
+        "criteria": {
+          "order_status": "Where an order is, when it will arrive, or whether it shipped",
+          "product_question": "A question about what a product is, does, or fits",
+          "return_exchange": "Sending something back, swapping it, or asking how to",
+          "complaint": "Dissatisfaction with an order, a product or the service itself",
+          "other": "Anything that fits none of the above"
+        }
+      },
+      "complexity": {
+        "type": "score",
+        "instructions": "How much work does resolving this message take?",
+        "criteria": [
+          "Answerable by a lookup",
+          "Needs judgment or a few exchanges",
+          "Needs an exception or a human decision"
+        ]
+      },
+      "wants_human": {
+        "type": "noul",
+        "instructions": "Is the customer asking to speak to a person?"
+      }
+    }
+  },
+  "answers": {
+    "intent": {
+      "type": "choice",
+      "choice": "order_status",
+      "confidence": 1,
+      "probabilities": {
+        "order_status": 1,
+        "complaint": 0,
+        "other": 0,
+        "return_exchange": 0,
+        "product_question": 0
+      }
+    },
+    "complexity": {
+      "type": "score",
+      "score": 0.01,
+      "confidence": 0.98,
+      "legend": {
+        "0": "Answerable by a lookup",
+        "1": "Needs judgment or a few exchanges",
+        "2": "Needs an exception or a human decision"
+      },
+      "probabilities": {
+        "0": 0.99,
+        "1": 0.01,
+        "2": 0
+      }
+    },
+    "wants_human": {
+      "type": "noul",
+      "noul": 0.05
+    }
+  },
+  "usage": {
+    "input_tokens": 484,
+    "output_tokens": 92
+  },
+  "costUsd": 0.000020328000000000003,
+  "clientMs": 379
+}

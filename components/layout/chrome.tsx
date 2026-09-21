@@ -51,7 +51,7 @@ function SessionCostMeter() {
 }
 
 export function StatusBanner() {
-  const [status, setStatus] = React.useState<{ budget: string; resetsAt: string } | null>(null)
+  const [status, setStatus] = React.useState<{ budget: string; compareBudget?: string } | null>(null)
   const [dismissed, setDismissed] = React.useState(false)
 
   React.useEffect(() => {
@@ -65,26 +65,35 @@ export function StatusBanner() {
     }
   }, [])
 
-  if (!status || dismissed || status.budget === 'ok') return null
+  if (!status || dismissed) return null
 
   const paused = status.budget === 'paused'
+  const low = status.budget === 'low'
+  const compareOnly = status.budget === 'ok' && status.compareBudget === 'paused'
+  if (!paused && !low && !compareOnly) return null
 
   return (
     <InlineBanner variant={paused ? 'warning' : 'info'} onDismiss={() => setDismissed(true)}>
       {paused ? (
         <span>
-          Today&rsquo;s free budget is used up. Lyzr pays for these calls and caps them daily.
-          Presets still run from recorded responses, marked <strong>replay</strong>; lessons and
-          pages stay readable. Live runs return at 00:00 UTC. Need more now? Get your own key at{' '}
+          Live runs are paused for today — Lyzr pays for these calls and caps them daily. A preset
+          you have not edited still shows its recorded answer where it has one, marked{' '}
+          <strong>replay</strong>, and every page stays readable. Live runs return at 00:00 UTC.
+          Need more now? Get your own key at{' '}
           <a href={SITE.links.console} className="text-brand underline">
             console.typesafe.ai
           </a>{' '}
           — Jev Lab is not affiliated with TypeSafe AI.
         </span>
+      ) : compareOnly ? (
+        <span>
+          Today&rsquo;s comparison budget is used up, so the Jev-vs-LLM comparison is off until
+          00:00 UTC. Jev runs are unaffected.
+        </span>
       ) : (
         <span>
-          Today&rsquo;s free budget is getting low. Runs still work; if it runs out, presets replay
-          recorded answers until 00:00 UTC.
+          Today&rsquo;s free budget is getting low. Runs still work until it runs out, then pause
+          until 00:00 UTC.
         </span>
       )}
     </InlineBanner>
@@ -173,7 +182,7 @@ export function PageShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <TopNav />
-      <main className="mx-auto max-w-[1100px] px-4 py-10">{children}</main>
+      <main id="main" className="mx-auto max-w-[1100px] px-4 py-10">{children}</main>
       <Footer />
     </>
   )

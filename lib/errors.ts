@@ -75,15 +75,15 @@ export function normaliseUpstreamError(status: number, body: unknown): RunError 
   }
 
   if (status === 401 || status === 403) {
-    // Our key, never the visitor's — surface it as our problem.
-    return { error: 'upstream_auth', message: 'Jev Lab could not authenticate with TypeSafe.', raw }
+    // Our key, never the visitor's. The body is not passed through: an auth
+    // error can describe the key or the account behind it.
+    return { error: 'upstream_auth', message: 'Jev Lab could not authenticate with TypeSafe.' }
   }
 
   if (status === 429) {
     return {
       error: 'upstream',
       message: 'TypeSafe is rate-limiting us right now. Try again in a moment.',
-      raw,
     }
   }
 
@@ -91,11 +91,10 @@ export function normaliseUpstreamError(status: number, body: unknown): RunError 
     return {
       error: 'upstream',
       message: 'TypeSafe is busy or unavailable. Try again in a moment.',
-      raw,
     }
   }
 
-  return { error: 'upstream', message: `TypeSafe returned ${status}.`, raw }
+  return { error: 'upstream', message: `TypeSafe returned ${status}.` }
 }
 
 /**

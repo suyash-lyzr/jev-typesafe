@@ -1,4 +1,4 @@
-import type { Answer, JevRequest, Usage } from './schema'
+import type { Answer, JevRequest, Question, Usage } from './schema'
 import type { Policy } from './policy'
 
 /**
@@ -24,11 +24,16 @@ const MAX_STORED_STATE_CHARS = 16_000
 
 export interface CompareRecord {
   llmModel: string
+  /** False when the LLM half failed or did not run; `error` says why. */
+  ok?: boolean
+  error?: string
   answers: Record<string, unknown>
   ms: number
   costUsd: number
   promptTokens: number
   completionTokens: number
+  /** The prices the server actually charged, never guessed in the browser. */
+  pricing?: { id: string; inPerM: number; outPerM: number; confirmedOn: string | null }
 }
 
 export interface RunRecord {
@@ -37,10 +42,26 @@ export interface RunRecord {
   title: string
   presetId?: string
   variantId?: string
+  /** The exact body that was sent. */
   request: JevRequest
+  /**
+   * The editor's own shape, so reopening a run restores A/B variants, the
+   * policy and the state mode instead of flattening `sev__A` / `sev__B` into
+   * two unrelated questions.
+   */
+  editor?: {
+    questions: Record<string, Question>
+    variants: Record<string, Question>
+    stateMode: 'text' | 'json'
+    policy?: Policy
+    compare?: boolean
+  }
+  /** Set when the state was too large to keep; the run can be viewed, not re-sent. */
+  stateTruncated?: boolean
   answers: Record<string, Answer>
   usage: Usage
   timing: { jevMs: number; serverMs: number; retries: number }
+  clientMs?: number
   costUsd: number
   model: string
   replay: boolean
@@ -98,8 +119,18 @@ export function storageAvailable(): boolean {
 
 // --- runs ------------------------------------------------------------------
 
+/** Whatever is stored is checked for shape: another tab or an old version may have written it. */
 export function loadRuns(): RunRecord[] {
-  return read<RunRecord[]>(KEYS.runs, [])
+  const runs = read<unknown>(KEYS.runs, [])
+  if (!Array.isArray(runs)) return []
+  return runs.filter(
+    (r): r is RunRecord =>
+      Boolean(r) &&
+      typeof r === 'object' &&
+      typeof (r as RunRecord).id === 'string' &&
+      typeof (r as RunRecord).request === 'object' &&
+      typeof (r as RunRecord).answers === 'object'
+  )
 }
 
 /** Oldest first out, and an oversized state is dropped rather than stored. */
@@ -113,6 +144,7 @@ export function saveRun(run: RunRecord): RunRecord[] {
     stateChars > MAX_STORED_STATE_CHARS
       ? {
           ...run,
+          stateTruncated: true,
           request: {
             ...run.request,
             state: `[state of ${stateChars.toLocaleString()} characters — too large to keep in this browser]`,
@@ -142,9 +174,15 @@ export function clearRuns(): void {
 
 export function loadSession(): SessionTotals {
   const fallback: SessionTotals = { startedAt: Date.now(), runs: 0, inputTokens: 0, costUsd: 0 }
-  const session = read<SessionTotals>(KEYS.session, fallback)
-  if (Date.now() - session.startedAt > SESSION_MAX_AGE_MS) return fallback
-  return session
+  const session = read<unknown>(KEYS.session, fallback) as Partial<SessionTotals> | null
+  const valid =
+    session &&
+    typeof session === 'object' &&
+    typeof session.startedAt === 'number' &&
+    typeof session.runs === 'number' &&
+    typeof session.costUsd === 'number'
+  if (!valid || Date.now() - session.startedAt! > SESSION_MAX_AGE_MS) return fallback
+  return session as SessionTotals
 }
 
 export function addToSession(inputTokens: number, costUsd: number): SessionTotals {
@@ -177,6 +215,8 @@ export interface LessonProgress {
   steps: Record<number, boolean>
   done: boolean
   doneAt?: number
+  /** The checkpoint passed on a live run at some point. */
+  checkpoint?: boolean
 }
 
 export function loadProgress(): Record<string, LessonProgress> {

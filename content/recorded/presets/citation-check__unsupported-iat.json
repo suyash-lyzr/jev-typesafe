@@ -1,0 +1,42 @@
+{
+  "preset": "citation-check",
+  "variant": "unsupported-iat",
+  "recordedAt": "2026-09-21T19:02:22.361Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "claim": "The \"iat\" claim requires validators to reject tokens whose issue time is in the future.",
+      "section": "4.1.6.  \"iat\" (Issued At) Claim\n\n   The \"iat\" (issued at) claim identifies the time at which the JWT was\n   issued.  This claim can be used to determine the age of the JWT.  Its\n   value MUST be a number containing a NumericDate value.  Use of this\n   claim is OPTIONAL."
+    },
+    "model": "jev-latest",
+    "questions": {
+      "relation": {
+        "type": "choice",
+        "instructions": "How does the section relate to the claim?",
+        "criteria": {
+          "supports": "The section states the claim or directly implies that it is true",
+          "contradicts": "The section states the opposite of the claim or implies it is false",
+          "says_nothing": "The section does not address what the claim asserts, either way"
+        }
+      }
+    }
+  },
+  "answers": {
+    "relation": {
+      "type": "choice",
+      "choice": "says_nothing",
+      "confidence": 0.95,
+      "probabilities": {
+        "says_nothing": 0.97,
+        "contradicts": 0.02,
+        "supports": 0.01
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 472,
+    "output_tokens": 48
+  },
+  "costUsd": 0.000019824000000000002,
+  "clientMs": 309
+}

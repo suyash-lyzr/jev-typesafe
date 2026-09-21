@@ -1,0 +1,42 @@
+{
+  "preset": "citation-check",
+  "variant": "unsupported-pii",
+  "recordedAt": "2026-09-21T19:02:21.651Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "claim": "RFC 7519 requires that any personally identifying information carried in a JWT claim be encrypted.",
+      "section": "4.1.2.  \"sub\" (Subject) Claim\n\n   The \"sub\" (subject) claim identifies the principal that is the\n   subject of the JWT.  The claims in a JWT are normally statements\n   about the subject.  The subject value MUST either be scoped to be\n   locally unique in the context of the issuer or be globally unique.\n   The processing of this claim is generally application specific.  The\n   \"sub\" value is a case-sensitive string containing a StringOrURI\n   value.  Use of this claim is OPTIONAL."
+    },
+    "model": "jev-latest",
+    "questions": {
+      "relation": {
+        "type": "choice",
+        "instructions": "How does the section relate to the claim?",
+        "criteria": {
+          "supports": "The section states the claim or directly implies that it is true",
+          "contradicts": "The section states the opposite of the claim or implies it is false",
+          "says_nothing": "The section does not address what the claim asserts, either way"
+        }
+      }
+    }
+  },
+  "answers": {
+    "relation": {
+      "type": "choice",
+      "choice": "says_nothing",
+      "confidence": 0.88,
+      "probabilities": {
+        "says_nothing": 0.92,
+        "supports": 0,
+        "contradicts": 0.08
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 513,
+    "output_tokens": 48
+  },
+  "costUsd": 0.000021546000000000003,
+  "clientMs": 343
+}
