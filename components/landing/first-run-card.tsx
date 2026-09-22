@@ -130,9 +130,13 @@ export function FirstRunCard() {
         </span>
       </div>
 
-      <div className="min-h-[92px] border-b border-dashed border-border px-5 py-4">
-        <p className="mb-1.5 font-mono text-[11px] tracking-[0.04em] text-faint">STATE</p>
-        <p className="max-h-[132px] overflow-hidden whitespace-pre-wrap text-[14px] leading-relaxed">
+      {/* A fixed height, not a min/max: different examples have very different
+          state lengths, and the text grows character by character while it
+          types. Either would otherwise resize this box continuously, which
+          reflows the whole hero column since the grid centers on row height. */}
+      <div className="flex h-[184px] flex-col border-b border-dashed border-border px-5 py-4">
+        <p className="mb-1.5 shrink-0 font-mono text-[11px] tracking-[0.04em] text-faint">STATE</p>
+        <p className="min-h-0 flex-1 overflow-hidden whitespace-pre-wrap text-[14px] leading-relaxed">
           {text.slice(0, typed)}
           {typing && <span className="ml-px inline-block h-[1.05em] w-0.5 translate-y-[3px] animate-pulse bg-fill" aria-hidden />}
           <span className="sr-only">{text}</span>

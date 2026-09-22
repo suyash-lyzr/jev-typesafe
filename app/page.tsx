@@ -26,7 +26,7 @@ export default function Home() {
       <TopNav />
 
       <main id="main" className="mx-auto max-w-[1240px] px-4 sm:px-8">
-        <section className="grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_1.15fr] lg:gap-14 lg:py-20">
+        <section className="grid items-center gap-10 pb-12 pt-8 sm:pb-16 sm:pt-10 lg:grid-cols-[1fr_1.15fr] lg:gap-14 lg:pb-20 lg:pt-12">
           <div>
             <span className="inline-flex h-7 items-center gap-2 rounded-full border border-border bg-card px-3 text-[12.5px] text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
