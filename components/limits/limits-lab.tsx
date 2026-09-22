@@ -265,7 +265,7 @@ export function LimitSection({ spec }: { spec: LimitSpec }) {
         <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
       </a>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
+      <div className="mt-5 grid max-md:grid-cols-1 gap-4 md:grid-cols-2">
         {variants.map((v) => (
           <RunCard key={v.id} spec={spec} preset={preset} variant={getVariant(preset, v.id)} />
         ))}

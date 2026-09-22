@@ -66,7 +66,7 @@ export default function AboutPage() {
 
       <section className="mt-12" aria-labelledby="numbers-heading">
         <h2 id="numbers-heading" className="text-xl font-semibold">Every number is one of two kinds</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="mt-4 grid max-md:grid-cols-1 gap-3 md:grid-cols-2">
           <div className="rounded-[16px] border border-border bg-card p-5 shadow-card">
             <span className="rounded-full bg-success-soft px-2 py-0.5 font-mono text-[11px] text-success-text">live</span>
             <h3 className="mt-3 text-[15px] font-semibold">A single run, just now</h3>

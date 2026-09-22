@@ -16,7 +16,7 @@ export default function PlayPage() {
       <TopNav />
       <Suspense
         fallback={
-          <div className="grid gap-4 p-4 lg:grid-cols-2">
+          <div className="grid max-md:grid-cols-1 gap-4 p-4 lg:grid-cols-2">
             <Skeleton className="h-[70vh] w-full" />
             <Skeleton className="h-[70vh] w-full" />
           </div>

@@ -46,7 +46,7 @@ export default function LimitsPage() {
         <p className="mt-2 max-w-[66ch] text-sm text-muted-foreground">
           Not runnable here yet. Each is paraphrased from the jaggedness page with the advice it gives.
         </p>
-        <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-5 grid max-md:grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           {QUOTED_MODES.map((m) => (
             <article key={m.anchor} id={m.anchor} className="flex scroll-mt-24 flex-col rounded-[16px] border border-border bg-card p-5 shadow-card">
               <div className="flex items-center gap-2">

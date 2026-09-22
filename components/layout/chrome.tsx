@@ -8,6 +8,8 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { InlineBanner } from '@/components/ui/inline-banner'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { Menu } from 'lucide-react'
 import { SITE } from '@/lib/site'
 import { formatUsd } from '@/lib/pricing'
 import { loadSession, type SessionTotals } from '@/lib/storage'
@@ -91,6 +93,64 @@ export function StatusBanner() {
   )
 }
 
+/** Phones only: the nav, theme and playground button, in a sheet behind one button. */
+function MobileMenu({ pathname }: { pathname: string }) {
+  const [open, setOpen] = React.useState(false)
+  // Close on navigation.
+  React.useEffect(() => setOpen(false), [pathname])
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <button
+          type="button"
+          aria-label="Open menu"
+          className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-border bg-card text-foreground md:hidden"
+        >
+          <Menu className="h-[18px] w-[18px]" aria-hidden />
+        </button>
+      </SheetTrigger>
+      <SheetContent side="right" className="flex w-[82vw] max-w-[320px] flex-col gap-0 p-0">
+        <SheetHeader className="border-b border-border px-5 py-4 text-left">
+          <SheetTitle className="font-display text-base">{SITE.name}</SheetTitle>
+        </SheetHeader>
+        <nav className="flex flex-col gap-1 p-3" aria-label="Main">
+          {NAV.map((item) => {
+            const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  'flex h-11 items-center rounded-[10px] border px-3.5 text-[15px] transition-colors duration-fast',
+                  active ? 'shadow-card bg-card font-medium text-foreground' : 'border-transparent text-muted-foreground hover:bg-muted'
+                )}
+              >
+                {item.label}
+              </Link>
+            )
+          })}
+        </nav>
+        <div className="mt-auto space-y-4 border-t border-border p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-[13px] text-muted-foreground">Theme</span>
+            <ThemeToggle />
+          </div>
+          {pathname !== '/play' && (
+            <Button asChild className="h-11 w-full rounded-[10px]">
+              <Link href="/play" onClick={() => setOpen(false)}>
+                Open playground
+              </Link>
+            </Button>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+}
+
 export function TopNav() {
   const pathname = usePathname()
 
@@ -98,7 +158,7 @@ export function TopNav() {
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-md">
       <div
         className={cn(
-          'mx-auto flex h-[60px] items-center gap-7 px-4',
+          'mx-auto flex h-[60px] items-center gap-7 px-4 max-md:gap-3',
           // The playground is a full-width tool; everything else sits on the 1240 grid.
           pathname === '/play' ? 'max-w-none' : 'max-w-[1240px] sm:px-8'
         )}
@@ -118,7 +178,7 @@ export function TopNav() {
           </a>
         </div>
 
-        <nav className="flex items-center gap-1 overflow-x-auto py-1 pr-1 sm:gap-1.5" aria-label="Main">
+        <nav className="flex items-center gap-1 overflow-x-auto py-1 pr-1 max-md:hidden sm:gap-1.5" aria-label="Main">
           {NAV.map((item, i) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
             return (
@@ -140,7 +200,7 @@ export function TopNav() {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-4 max-md:hidden">
           <SessionCostMeter />
           <ThemeToggle />
           {pathname !== '/play' && (
@@ -149,6 +209,8 @@ export function TopNav() {
             </Button>
           )}
         </div>
+
+        <MobileMenu pathname={pathname} />
       </div>
       <StatusBanner />
     </header>

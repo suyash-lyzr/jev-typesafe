@@ -29,7 +29,7 @@ function CompareToggle() {
   return (
     <div
       className={cn(
-        'ml-auto inline-flex h-10 shrink-0 items-center rounded-full border bg-card pl-1.5 pr-3 text-[13px] shadow-card transition-colors duration-fast',
+        'ml-auto inline-flex h-10 shrink-0 items-center rounded-full border bg-card pl-1.5 pr-3 text-[13px] shadow-card transition-colors duration-fast max-md:ml-0 max-md:max-w-full',
         out && 'opacity-60'
       )}
     >
@@ -298,15 +298,15 @@ export function ResultTabs({ children, numbered = true }: { children: React.Reac
 
   return (
     <div className="flex h-full flex-col bg-results">
-      <div className="flex items-start gap-3 px-4 pt-4">
+      <div className="flex items-start gap-3 px-4 pt-4 max-md:flex-col">
         <div className="min-w-0">
           <StepLabel n={numbered ? 4 : undefined}>Read the decisions</StepLabel>
           <p className={cn('mt-1 text-[13px]', numbered && 'pl-7', 'text-muted-foreground')}>Typed answers your code can act on</p>
         </div>
         <CompareToggle />
       </div>
-      <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
-      <div className="inline-flex shrink-0 gap-0.5 overflow-x-auto rounded-full bg-muted p-[3px]" role="tablist" aria-label="Result views" onKeyDown={onKeyDown}>
+      <div className="flex items-center gap-3 border-b border-border px-4 py-2.5 max-md:flex-wrap max-md:gap-y-2">
+      <div className="inline-flex shrink-0 gap-0.5 overflow-x-auto max-md:max-w-full rounded-full bg-muted p-[3px]" role="tablist" aria-label="Result views" onKeyDown={onKeyDown}>
         {tabs.map((t) => (
           <button
             key={t.id}

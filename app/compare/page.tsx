@@ -64,7 +64,7 @@ export default function ComparePage() {
         <h2 id="measure-heading" className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
           How we measure
         </h2>
-        <ol className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="mt-3 grid max-md:grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { Icon: Timer, title: 'Same moment', body: 'Both calls leave one server function together.' },
             { Icon: Gauge, title: 'Own stopwatch', body: 'Each side times its own call, body included.' },
@@ -84,7 +84,7 @@ export default function ComparePage() {
         <h2 id="cant-heading" className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
           What one run can&rsquo;t tell you
         </h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-3 grid max-md:grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <IconCard Icon={Target} title="Accuracy">Agreeing isn&rsquo;t being right.</IconCard>
           <IconCard Icon={Scale} title="Calibration">That takes many runs.</IconCard>
           <IconCard Icon={TrendingUp} title="A trend">One run, one region, network included.</IconCard>

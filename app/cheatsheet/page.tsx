@@ -110,7 +110,7 @@ export default function CheatsheetPage() {
       {/* The three types */}
       <section className="mt-10" aria-label="The three question types">
         <Label>Three question types</Label>
-        <div className="mt-3 grid gap-3 md:grid-cols-3">
+        <div className="mt-3 grid max-md:grid-cols-1 gap-3 md:grid-cols-3">
           {TYPES.map(({ type, when, Viz, returns, limit, tip }) => (
             <article key={type} className="flex flex-col rounded-[16px] border border-border bg-card p-5 shadow-card">
               <div className="flex items-center justify-between gap-2">
@@ -150,7 +150,7 @@ export default function CheatsheetPage() {
       {/* Patterns */}
       <section className="mt-10" aria-label="Patterns">
         <Label>Patterns</Label>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-3 grid max-md:grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {PATTERNS.map(({ Icon, name, line, stat }, i) => (
             <div key={name} className="rounded-[16px] border border-border bg-card p-5 shadow-card">
               <div className="flex items-center justify-between">
@@ -167,7 +167,7 @@ export default function CheatsheetPage() {
       </section>
 
       {/* Breaks + tricks */}
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+      <div className="mt-10 grid max-md:grid-cols-1 gap-8 lg:grid-cols-[1.4fr_1fr]">
         <section aria-label="Where jev-1.13 breaks">
           <div className="flex items-baseline justify-between">
             <Label>Where jev-1.13 breaks</Label>

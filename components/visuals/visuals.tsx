@@ -196,7 +196,7 @@ export function RequestFlow({ className }: { className?: string }) {
 
   return (
     <div ref={ref} className={cn('relative', className)}>
-      <div className="grid items-stretch md:grid-cols-[1fr_auto_1.1fr_auto_1.1fr]">
+      <div className="grid max-md:grid-cols-1 items-stretch md:grid-cols-[1fr_auto_1.1fr_auto_1.1fr]">
         {/* 1. State */}
         <div className={cn(card, stage >= 1 ? 'opacity-100' : 'translate-y-1 opacity-0')}>
           <p className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-faint">1 · State</p>

@@ -266,7 +266,7 @@ export function LessonView({ slug }: { slug: string }) {
   const everRanLive = Boolean(ctx.live) || Boolean(progress.checkpoint)
 
   return (
-    <div className="grid min-h-[calc(100dvh-3.5rem)] lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+    <div className="grid max-md:grid-cols-1 min-h-[calc(100dvh-3.5rem)] lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
       <aside className="border-b border-border p-6 lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)] lg:overflow-y-auto lg:border-b-0 lg:border-r">
         <nav className="flex items-center justify-between text-xs text-muted-foreground" aria-label="Lessons">
           <Link href="/learn" className="hover:text-foreground">
@@ -353,7 +353,7 @@ export function LessonView({ slug }: { slug: string }) {
 
       <main id="main" className="flex min-h-[70vh] flex-col lg:h-[calc(100dvh-3.5rem)] lg:overflow-hidden">
         {mounted ? (
-          <div className="grid min-h-0 flex-1 xl:grid-cols-2 xl:divide-x xl:divide-border">
+          <div className="grid max-md:grid-cols-1 min-h-0 flex-1 xl:grid-cols-2 xl:divide-x xl:divide-border">
             <div className="flex min-h-0 flex-col overflow-y-auto">
               <StateEditor numbered={false} />
               <QuestionsList numbered={false} />
@@ -374,7 +374,7 @@ export function LessonView({ slug }: { slug: string }) {
             </div>
           </div>
         ) : (
-          <div className="grid gap-4 p-4 xl:grid-cols-2" aria-busy="true">
+          <div className="grid max-md:grid-cols-1 gap-4 p-4 xl:grid-cols-2" aria-busy="true">
             <Skeleton className="h-[60vh] w-full" />
             <Skeleton className="h-[60vh] w-full" />
           </div>

@@ -38,8 +38,8 @@ export function LlmPicker({ className, bare = false }: { className?: string; bar
             className
           )}
         >
-          <span className="text-muted-foreground">vs</span>
-          <span className="font-mono font-medium">{compareModel}</span>
+          <span className={cn('text-muted-foreground', bare && 'max-sm:hidden')}>vs</span>
+          <span className="font-mono font-medium max-md:whitespace-nowrap">{compareModel}</span>
           <ChevronDown className="h-3.5 w-3.5 text-faint transition-transform duration-fast group-data-[state=open]:rotate-180" aria-hidden />
         </button>
       </DropdownMenuTrigger>
@@ -116,7 +116,7 @@ export function QuotaDots({ className }: { className?: string }) {
           className={cn('h-[6px] w-[6px] rounded-full transition-colors', i < q.remaining ? 'bg-foreground' : 'bg-foreground/15')}
         />
       ))}
-      <span className="ml-1.5 font-mono text-[11px] tabular text-muted-foreground" aria-hidden>
+      <span className="ml-1.5 font-mono text-[11px] tabular text-muted-foreground max-[380px]:hidden" aria-hidden>
         {q.remaining === 0 ? '0 left' : `${q.remaining} left`}
       </span>
     </span>

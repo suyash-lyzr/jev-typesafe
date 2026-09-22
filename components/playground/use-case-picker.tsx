@@ -227,7 +227,7 @@ export function UseCasePicker({ onPick }: { onPick: (input: LoadInput) => void }
               {filter === 'docs' && (
                 <p className="mb-2 px-0.5 text-[11.5px] text-faint">The requests TypeSafe&rsquo;s docs use, with the numbers they print. Several have variants.</p>
               )}
-              <ul className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="grid max-md:grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
                 {section.items.map((preset) => (
                   <PickerItem
                     key={preset.slug}

@@ -26,7 +26,7 @@ export default function Home() {
       <TopNav />
 
       <main id="main" className="mx-auto max-w-[1240px] px-4 sm:px-8">
-        <section className="grid items-center gap-10 pb-12 pt-8 sm:pb-16 sm:pt-10 lg:grid-cols-[1fr_1.15fr] lg:gap-14 lg:pb-20 lg:pt-12">
+        <section className="grid max-md:grid-cols-1 items-center gap-10 pb-12 pt-8 sm:pb-16 sm:pt-10 lg:grid-cols-[1fr_1.15fr] lg:gap-14 lg:pb-20 lg:pt-12">
           <div>
             <span className="inline-flex h-7 items-center gap-2 rounded-full border border-border bg-card px-3 text-[12.5px] text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
@@ -74,7 +74,7 @@ export default function Home() {
           <FirstRunCard />
         </section>
 
-        <section className="grid gap-3 pb-8 sm:grid-cols-3" aria-label="Explore">
+        <section className="grid max-md:grid-cols-1 gap-3 pb-8 sm:grid-cols-3" aria-label="Explore">
           {TILES.map((tile, i) => (
             <Link key={tile.href} href={tile.href} className={cn('group rounded-[16px] border p-5 shadow-card', pastel(i))}>
               <span className="flex items-center justify-between font-display text-[15px] font-semibold">

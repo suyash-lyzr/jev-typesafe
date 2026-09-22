@@ -243,7 +243,7 @@ export function Playground() {
 
   if (!mounted) {
     return (
-      <div className="grid gap-4 p-4 lg:grid-cols-2" aria-busy="true">
+      <div className="grid max-md:grid-cols-1 gap-4 p-4 lg:grid-cols-2" aria-busy="true">
         <Skeleton className="h-[70vh] w-full" />
         <Skeleton className="h-[70vh] w-full" />
       </div>

@@ -106,7 +106,7 @@ export function CompareTab() {
       )}
 
       {/* Headline: the two numbers people came for */}
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid max-md:grid-cols-1 gap-3 sm:grid-cols-2">
         <Duel
           title="Speed"
           tone="bg-pastel-1"

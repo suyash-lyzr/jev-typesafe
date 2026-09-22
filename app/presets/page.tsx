@@ -99,7 +99,7 @@ export default function ExamplesPage() {
                 <p className="mt-0.5 text-[13.5px] text-muted-foreground">{USE_CASE_GROUP_BLURB[g]}</p>
               </div>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-4 grid max-md:grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((preset) => (
                 <UseCaseCard key={preset.slug} preset={preset} />
               ))}
@@ -172,7 +172,7 @@ export default function ExamplesPage() {
           return (
             <div key={c} className="mt-6">
               <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">{CATEGORY_LABEL[c]}</h3>
-              <div className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-2.5 grid max-md:grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {presets.map((preset) => (
                   <Link
                     key={preset.slug}

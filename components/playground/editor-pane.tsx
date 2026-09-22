@@ -151,10 +151,11 @@ export function StateEditor({ numbered = true }: { numbered?: boolean } = {}) {
         className="transition-[border-color] duration-fast focus-within:border-foreground/35"
         header={
           <>
-            <StepLabel n={numbered ? 2 : undefined} id="state-heading">
+            <StepLabel n={numbered ? 2 : undefined} id="state-heading" className="max-sm:min-w-0 max-sm:flex-wrap max-sm:gap-y-0.5">
               Edit the state
-              <span className="font-sans text-[13px] font-normal tracking-normal text-muted-foreground">
-                - The input your software gives Jev
+              <span className={cn('font-sans text-[13px] font-normal tracking-normal text-muted-foreground max-sm:w-full max-sm:text-[12px]', numbered && 'max-sm:pl-7')}>
+                <span className="max-sm:hidden">- The input your software gives Jev</span>
+                <span className="sm:hidden">The input your software gives Jev</span>
               </span>
             </StepLabel>
             <SegmentedControl

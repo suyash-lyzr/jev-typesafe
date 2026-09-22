@@ -74,11 +74,11 @@ function ThresholdSlider({
 function RuleBlock({ name, hint, children }: { name: string; hint: string; children?: React.ReactNode }) {
   return (
     <div className="py-3.5">
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="min-w-0 truncate font-mono text-[13px] font-medium text-foreground" title={name}>
+      <div className="flex items-baseline justify-between gap-3 max-sm:flex-col max-sm:gap-0.5">
+        <span className="min-w-0 truncate font-mono text-[13px] font-medium text-foreground max-sm:max-w-full" title={name}>
           {name}
         </span>
-        <span className="shrink-0 text-[11.5px] text-faint">{hint}</span>
+        <span className="shrink-0 text-[11.5px] text-faint max-sm:shrink">{hint}</span>
       </div>
       {children && <div className="mt-2.5 grid grid-cols-[92px_minmax(0,1fr)_56px] items-center gap-x-3 gap-y-2">{children}</div>}
     </div>
@@ -249,7 +249,7 @@ export function JsonTab() {
   const dirty = isDirtySinceRun()
 
   return (
-    <div className="grid gap-4 p-4 lg:grid-cols-2">
+    <div className="grid max-md:grid-cols-1 gap-4 p-4 lg:grid-cols-2">
       <div>
         <div className="mb-1 flex items-center justify-between gap-2">
           <h3 className="text-[13px] font-medium uppercase tracking-wide text-muted-foreground">

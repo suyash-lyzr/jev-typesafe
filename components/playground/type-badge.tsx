@@ -48,9 +48,9 @@ export function TypeLegend({ className }: { className?: string }) {
   )
 }
 
-export function StepLabel({ n, children, id }: { n?: number; children: React.ReactNode; id?: string }) {
+export function StepLabel({ n, children, id, className }: { n?: number; children: React.ReactNode; id?: string; className?: string }) {
   return (
-    <h2 id={id} className="flex items-center gap-2 font-display text-[14px] font-semibold tracking-[-0.01em] text-foreground">
+    <h2 id={id} className={cn('flex items-center gap-2 font-display text-[14px] font-semibold tracking-[-0.01em] text-foreground', className)}>
       {n != null && <StepNumber n={n} />}
       {children}
     </h2>

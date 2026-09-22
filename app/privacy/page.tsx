@@ -57,7 +57,7 @@ export default function PrivacyPage() {
         </p>
       </section>
 
-      <div className="mt-10 grid gap-3 md:grid-cols-2">
+      <div className="mt-10 grid max-md:grid-cols-1 gap-3 md:grid-cols-2">
         <IconCard Icon={ScrollText} title="What we log">
           One line per call: model id, preset, question count, input tokens, latency, retries (and the LLM&rsquo;s id and latency when
           comparing). Never your state, instructions, criteria or answers. Vercel keeps its own request logs, with IP addresses, as
