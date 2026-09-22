@@ -1,3 +1,5 @@
+import { findLlmModel, LLM_PRICES_CHECKED_ON, LLM_PRICES_SOURCE } from './llm-models'
+
 /**
  * Every price on the site reads from this module, so the playground, the
  * compare page and the cost meter can never drift from each other.
@@ -48,6 +50,13 @@ export function llmPricingFromEnv(env: Record<string, string | undefined> = proc
       ? 'https://openai.com/api/pricing/'
       : "TypeSafe's consistency cookbook assumption (as of 2026-07), not yet confirmed",
   }
+}
+
+/** The catalogue's price for a listed model: checked, dated, sourced. */
+export function llmPricingFor(id: string): LlmPricing | null {
+  const m = findLlmModel(id)
+  if (!m) return null
+  return { id: m.id, inPerM: m.inPerM, outPerM: m.outPerM, confirmedOn: LLM_PRICES_CHECKED_ON, source: LLM_PRICES_SOURCE }
 }
 
 /** Server-side view. Import `JEV_PRICING` rather than this in client components. */

@@ -119,7 +119,7 @@ export const limitsPresets: Preset[] = [
         id: 'breaks',
         label: 'Ask for the count',
         description:
-          `Twenty ordinary words, ${FRUIT_COUNT} of them fruit, and nothing borderline. On a short list jev-1.13 usually lands on the right number; at twenty it spreads its probability across four or five neighbouring counts, around 9 to 13, with confidence near 0.25 — and whichever it picks, it did not tally anything. It produced the option that looked like the right size of answer, and the error grows with the length of the list.`,
+          `Twenty ordinary words, ${FRUIT_COUNT} of them fruit, and nothing borderline. In our recorded run (2026-09-21) it spread its probability across four neighbouring counts — 9 at 0.38, 10 at 0.28, 11 and 12 at about 0.13 each — and picked 9 at confidence 0.34. Whichever it picks, it did not tally anything. It produced the option that looked like the right size of answer, and the error grows with the length of the list.`,
         state: { items: FRUIT_ITEMS },
         recorded: null,
       },
@@ -319,7 +319,7 @@ export const limitsPresets: Preset[] = [
         id: 'breaks',
         label: 'A plain Choice',
         description:
-          `A missing delivery, wrapped in a line that tells the classifier what to answer. On its own — "${PLAIN_TICKET}" — this ticket goes to shipping at 1.0. With the planted line, a large share of the probability moves to billing (0.36 to 0.44 in our runs) and confidence falls below 0.5. Nothing in the question says the state is a customer message rather than a source of instructions, so the text had room to move the answer.`,
+          `A missing delivery, wrapped in a line that tells the classifier what to answer. On its own — "${PLAIN_TICKET}" — this ticket goes to shipping at 1.0. With the planted line, 0.40 of the probability moved to billing in our recorded run (2026-09-21), and confidence fell to 0.40. Nothing in the question says the state is a customer message rather than a source of instructions, so the text had room to move the answer.`,
         state: INJECTED_TICKET,
         recorded: null,
       },
@@ -385,7 +385,7 @@ export const limitsPresets: Preset[] = [
         id: 'breaks',
         label: 'Ask about the gap',
         description:
-          'The 20th of February to the 2nd of March 2026 is exactly 10 days, because 2026 is not a leap year — so "more than 10 days?" is a no. Getting it right means knowing how long February is and counting across the month boundary, which is date arithmetic, and the docs list date arithmetic as unreliable. We asked four gap questions like this one on 2026-09-21; jev-1.13 got three right, and this is the one it got wrong — confidently, at 0.93, on every run. It is shown because it failed, which is the point: you cannot tell from the number which kind of gap question you are looking at.',
+          'The 20th of February to the 2nd of March 2026 is exactly 10 days, because 2026 is not a leap year — so "more than 10 days?" is a no. Getting it right means knowing how long February is and counting across the month boundary, which is date arithmetic, and the docs list date arithmetic as unreliable. In our recorded run (2026-09-21) jev-1.13 said yes at 0.94 — confidently wrong. We chose this pair because it fails; other date pairs can come out right, which is the point: a confident number does not tell you whether the date arithmetic behind it held.',
         state: { start: '2026-02-20', end: '2026-03-02' },
         recorded: null,
       },

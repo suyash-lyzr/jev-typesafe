@@ -1,0 +1,77 @@
+{
+  "preset": "comment-reply",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:26:33.989Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "Video: \"Dialling in espresso at home — beginner guide\"\nComment by @brewlab_nina: \"Great video! At 7:40 you said to grind finer if the shot runs fast, but my shots run fast AND taste bitter. Wouldn't finer make it worse? Using a Gaggia Classic with 18 g in.\"",
+    "model": "jev-latest",
+    "questions": {
+      "comment_type": {
+        "type": "choice",
+        "instructions": "What kind of comment is this?",
+        "criteria": {
+          "question": "Asks the creator something",
+          "feedback": "Suggests an improvement or correction",
+          "praise": "Compliments with nothing to answer",
+          "spam": "Self-promotion, scams or bots",
+          "negative": "Criticism or complaint",
+          "other": "A comment that fits none of these"
+        }
+      },
+      "worth_reply": {
+        "type": "noul",
+        "instructions": "Would a reply from the creator add real value?"
+      },
+      "difficulty": {
+        "type": "score",
+        "instructions": "How hard would a good reply be to write?",
+        "criteria": [
+          "A one-word reply",
+          "A sentence or two",
+          "Needs research or a longer explanation"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "comment_type": {
+      "type": "choice",
+      "choice": "question",
+      "confidence": 0.98,
+      "probabilities": {
+        "negative": 0,
+        "other": 0,
+        "praise": 0,
+        "question": 0.99,
+        "feedback": 0.01,
+        "spam": 0
+      }
+    },
+    "worth_reply": {
+      "type": "noul",
+      "noul": 0.85
+    },
+    "difficulty": {
+      "type": "score",
+      "score": 1.38,
+      "confidence": 0.43,
+      "legend": {
+        "0": "A one-word reply",
+        "1": "A sentence or two",
+        "2": "Needs research or a longer explanation"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.62,
+        "2": 0.38
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 529,
+    "output_tokens": 92
+  },
+  "costUsd": 0.000022218,
+  "clientMs": 301
+}

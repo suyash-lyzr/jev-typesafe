@@ -1,8 +1,9 @@
 'use client'
 
 import * as React from 'react'
+import { ChoiceViz, ConfidenceViz, NoulViz, RequestFlowCompact, ScoreViz, SplitViz } from '@/components/visuals/visuals'
 import Link from 'next/link'
-import { Check, Circle } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Check, Circle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
@@ -141,7 +142,7 @@ function Checkpoint({ lesson, ctx, passedBefore }: { lesson: Lesson; ctx: Lesson
   return (
     <section className="rounded-lg border border-border bg-card p-4" aria-labelledby="checkpoint-heading" aria-live="polite">
       <div className="flex items-center justify-between gap-2">
-        <h2 id="checkpoint-heading" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        <h2 id="checkpoint-heading" className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
           Checkpoint
         </h2>
         {passed ? (
@@ -172,7 +173,7 @@ function RecordedTable({ lesson, variantId }: { lesson: Lesson; variantId: strin
   if (!r) return null
   return (
     <section className="mt-6">
-      <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Recorded in the docs</h2>
+      <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">Recorded in the docs</h2>
       <table className="mt-2 w-full text-xs">
         <caption className="sr-only">Numbers recorded in {r.source}</caption>
         <thead>
@@ -198,6 +199,28 @@ function RecordedTable({ lesson, variantId }: { lesson: Lesson; variantId: strin
       </table>
       <p className="mt-1.5 text-[11px] text-muted-foreground">Source: {r.source}. A live run can differ.</p>
     </section>
+  )
+}
+
+
+/** One picture per lesson, above the prose, so the idea lands before the words. */
+const LESSON_VISUALS: Record<string, React.ComponentType<{ className?: string }>> = {
+  contract: RequestFlowCompact,
+  choice: ChoiceViz,
+  score: ScoreViz,
+  noul: NoulViz,
+  policy: ConfidenceViz,
+  'exact-checks': SplitViz,
+}
+
+function LessonVisual({ slug }: { slug: string }) {
+  const Visual = LESSON_VISUALS[slug]
+  if (!Visual) return null
+  return (
+    <figure className="mt-4 rounded-[16px] border border-border bg-muted/40 p-4">
+      <Visual />
+      <figcaption className="mt-2.5 text-[11px] text-faint">Illustrative — the steps below run it for real.</figcaption>
+    </figure>
   )
 }
 
@@ -265,14 +288,15 @@ export function LessonView({ slug }: { slug: string }) {
           </span>
         </nav>
 
-        <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        <p className="mt-5 font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
           Lesson {lesson.n} of {LESSONS.length} · {lesson.minutes} min
         </p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">{lesson.title}</h1>
         <p className="mt-3 text-[15px] font-medium leading-relaxed">{lesson.idea}</p>
-        <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">{lesson.intro}</div>
+        <LessonVisual slug={lesson.slug} />
+        <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">{lesson.intro}</div>
 
-        <h2 className="mt-7 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Steps</h2>
+        <h2 className="mt-7 font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">Steps</h2>
         <div className="mt-3">{mounted ? <Steps lesson={lesson} ctx={ctx} progress={progress} onTick={tick} /> : <Skeleton className="h-40 w-full" />}</div>
 
         <div className="mt-6">{mounted && <Checkpoint lesson={lesson} ctx={ctx} passedBefore={Boolean(progress.checkpoint)} />}</div>
@@ -280,7 +304,7 @@ export function LessonView({ slug }: { slug: string }) {
         <RecordedTable lesson={lesson} variantId={ctx.variantId} />
 
         <section className="mt-6">
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">What to notice</h2>
+          <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">What to notice</h2>
           <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-muted-foreground">
             {lesson.notice.map((n) => (
               <li key={n}>{n}</li>
@@ -288,43 +312,60 @@ export function LessonView({ slug }: { slug: string }) {
           </ul>
         </section>
 
-        <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-border pt-5">
-          {progress.done ? (
-            <Chip variant="success">Lesson done</Chip>
-          ) : (
-            <Button variant="outline" size="sm" onClick={markDone} disabled={!everRanLive} title={everRanLive ? undefined : 'Run the lesson live at least once first'}>
-              Mark done
-            </Button>
-          )}
-          <Button variant="ghost" size="sm" asChild>
-            <Link href={`/play?p=${lesson.start.preset}${lesson.start.variant ? `&v=${lesson.start.variant}` : ''}`}>Open in the playground</Link>
-          </Button>
-          {next ? (
-            <Button size="sm" asChild className="ml-auto">
-              <Link href={`/learn/${next.slug}`}>Next: {next.title} →</Link>
-            </Button>
-          ) : (
-            <Button size="sm" asChild className="ml-auto">
-              <Link href="/limits">On to the limits →</Link>
-            </Button>
-          )}
+        <div className="mt-7 border-t border-border pt-5">
+          {/* The way forward, as one clear card. */}
+          <Link
+            href={next ? `/learn/${next.slug}` : '/limits'}
+            className="shadow-card group flex items-center justify-between gap-3 rounded-[14px] border bg-card px-4 py-3.5"
+          >
+            <span className="min-w-0">
+              <span className="block font-mono text-[10.5px] uppercase tracking-[0.1em] text-faint">
+                {next ? `Next lesson · ${next.n} of ${LESSONS.length}` : 'After the last lesson'}
+              </span>
+              <span className="mt-0.5 block truncate text-[14.5px] font-semibold">{next ? next.title : 'On to where Jev breaks'}</span>
+            </span>
+            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-fast group-hover:translate-x-0.5 group-hover:text-foreground" aria-hidden />
+          </Link>
+
+          <div className="mt-3 flex items-center justify-between gap-3">
+            {progress.done ? (
+              <Chip variant="success">Lesson done</Chip>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={markDone}
+                disabled={!everRanLive}
+                title={everRanLive ? undefined : 'Run the lesson live at least once first'}
+              >
+                <Check className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Mark done
+              </Button>
+            )}
+            <Link
+              href={`/play?p=${lesson.start.preset}${lesson.start.variant ? `&v=${lesson.start.variant}` : ''}`}
+              className="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground"
+            >
+              Open in the playground <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+            </Link>
+          </div>
+          {!progress.done && !everRanLive && <p className="mt-2 text-[11.5px] text-faint">Run the lesson live once to mark it done.</p>}
         </div>
-        <p className="mt-4 text-[11px] text-muted-foreground">{SITE.disclaimer}</p>
+        <p className="mt-6 text-[11px] text-faint">{SITE.disclaimer}</p>
       </aside>
 
       <main id="main" className="flex min-h-[70vh] flex-col lg:h-[calc(100dvh-3.5rem)] lg:overflow-hidden">
         {mounted ? (
           <div className="grid min-h-0 flex-1 xl:grid-cols-2 xl:divide-x xl:divide-border">
             <div className="flex min-h-0 flex-col overflow-y-auto">
-              <StateEditor />
-              <QuestionsList />
+              <StateEditor numbered={false} />
+              <QuestionsList numbered={false} />
               <div className="mt-auto">
                 <LintBar />
                 <RunBar />
               </div>
             </div>
             <div className="min-h-[50vh] border-t border-border xl:border-t-0">
-              <ResultTabs>
+              <ResultTabs numbered={false}>
                 <ErrorCard />
                 {tab === 'answers' && <AnswersTab />}
                 {tab === 'policy' && <PolicyTab />}

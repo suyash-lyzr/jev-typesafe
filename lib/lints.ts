@@ -6,6 +6,7 @@ import {
   TOKEN_BUDGET_STATE,
   TOKEN_BUDGET_TOTAL,
   estimateTokens,
+  approxTokens,
   noulHasContent,
   isEditorQuestionId,
   stateChars,
@@ -143,7 +144,7 @@ export function lintRequest(
     lints.push({
       id: 'state-budget',
       severity: 'block',
-      message: `The state is about ${stateTokens.toLocaleString()} tokens; Jev allows ${TOKEN_BUDGET_STATE.toLocaleString()} for the state plus the longest question.`,
+      message: `The state is about ${approxTokens(state).toLocaleString()} tokens; Jev allows ${TOKEN_BUDGET_STATE.toLocaleString()} for the state plus the longest question.`,
     })
   }
 

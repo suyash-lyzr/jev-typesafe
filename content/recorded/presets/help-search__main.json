@@ -1,0 +1,86 @@
+{
+  "preset": "help-search",
+  "variant": "main",
+  "recordedAt": "2026-09-21T22:04:18.499Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "query": "I paid for a year up front, can I get money back if I cancel in month 3?",
+      "articles": {
+        "a1": "Refunds for monthly plans: cancel any time; no refunds for the current month.",
+        "a2": "Annual plans: cancel within 30 days for a full refund; after that, a prorated refund for unused whole months.",
+        "a3": "How to request a refund for a duplicate charge.",
+        "a4": "Changing your billing currency."
+      }
+    },
+    "model": "jev-latest",
+    "questions": {
+      "best_article": {
+        "type": "choice",
+        "instructions": "Which help article answers `query`?",
+        "criteria": {
+          "a1": "`articles.a1`",
+          "a2": "`articles.a2`",
+          "a3": "`articles.a3`",
+          "a4": "`articles.a4`",
+          "none": "No article answers the query"
+        }
+      },
+      "fully_answered": {
+        "type": "noul",
+        "instructions": "Would the best article fully answer `query` on its own?"
+      },
+      "match": {
+        "type": "score",
+        "instructions": "How well does the best article match what the person is asking?",
+        "criteria": [
+          "No match",
+          "Related topic only",
+          "Answers part of it",
+          "Answers it exactly"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "best_article": {
+      "type": "choice",
+      "choice": "a2",
+      "confidence": 1,
+      "probabilities": {
+        "a2": 1,
+        "a4": 0,
+        "none": 0,
+        "a1": 0,
+        "a3": 0
+      }
+    },
+    "fully_answered": {
+      "type": "noul",
+      "noul": 0.9
+    },
+    "match": {
+      "type": "score",
+      "score": 2.95,
+      "confidence": 0.95,
+      "legend": {
+        "0": "No match",
+        "1": "Related topic only",
+        "2": "Answers part of it",
+        "3": "Answers it exactly"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 0.04,
+        "3": 0.96
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 573,
+    "output_tokens": 91
+  },
+  "costUsd": 0.000024066000000000003,
+  "clientMs": 1074
+}

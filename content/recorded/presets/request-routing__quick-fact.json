@@ -1,0 +1,73 @@
+{
+  "preset": "request-routing",
+  "variant": "quick-fact",
+  "recordedAt": "2026-09-22T00:02:44.411Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "What time zone should I put for a meeting in Lisbon in November?",
+    "model": "jev-latest",
+    "questions": {
+      "tier": {
+        "type": "choice",
+        "instructions": "What is the cheapest model tier that can handle this request well?",
+        "criteria": {
+          "small": "A small, fast model: a fact, a lookup, a one-line rewrite or a yes/no",
+          "standard": "A standard model: drafting, summarising or explaining a page of material",
+          "frontier": "The strongest model: long multi-step reasoning or a large, careful code change",
+          "unclear": "Too vague to size up without asking the user first"
+        }
+      },
+      "effort": {
+        "type": "score",
+        "instructions": "How much work does a good answer take?",
+        "criteria": [
+          "One step: the answer fits in a sentence",
+          "A few steps: a paragraph to a page of output",
+          "Many interdependent steps that must all be right"
+        ]
+      },
+      "costly_mistake": {
+        "type": "noul",
+        "instructions": "Would a wrong answer be costly for the user?"
+      }
+    }
+  },
+  "answers": {
+    "tier": {
+      "type": "choice",
+      "choice": "small",
+      "confidence": 0.99,
+      "probabilities": {
+        "standard": 0,
+        "frontier": 0,
+        "small": 1,
+        "unclear": 0
+      }
+    },
+    "effort": {
+      "type": "score",
+      "score": 0.04,
+      "confidence": 0.94,
+      "legend": {
+        "0": "One step: the answer fits in a sentence",
+        "1": "A few steps: a paragraph to a page of output",
+        "2": "Many interdependent steps that must all be right"
+      },
+      "probabilities": {
+        "0": 0.97,
+        "1": 0.03,
+        "2": 0
+      }
+    },
+    "costly_mistake": {
+      "type": "noul",
+      "noul": 0.58
+    }
+  },
+  "usage": {
+    "input_tokens": 495,
+    "output_tokens": 83
+  },
+  "costUsd": 0.000020790000000000003,
+  "clientMs": 904
+}

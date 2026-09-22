@@ -1,0 +1,73 @@
+{
+  "preset": "phishing-check",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:26:30.292Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "From: IT Service Desk <helpdesk@micros0ft-support.co>\nSubject: [Action required] Your password expires in 2 hours\n\nYour Microsoft 365 password expires today at 17:00. To avoid losing access to email and Teams, verify your account now: https://login.micros0ft-support.co/verify\n\nIf you do not verify, your mailbox will be suspended.",
+    "model": "jev-latest",
+    "questions": {
+      "verdict": {
+        "type": "choice",
+        "instructions": "What is this email?",
+        "criteria": {
+          "legitimate": "A genuine message from the named sender",
+          "phishing": "Impersonates someone to steal credentials, money or data",
+          "spam": "Unwanted marketing, but not an attack",
+          "unclear": "Not enough information to tell"
+        }
+      },
+      "asks_credentials": {
+        "type": "noul",
+        "instructions": "Does the email ask the reader to enter their login credentials?"
+      },
+      "pressure": {
+        "type": "score",
+        "instructions": "How much urgency or pressure does the email apply?",
+        "criteria": [
+          "None: informational",
+          "Mild: a gentle reminder",
+          "Strong: a deadline or a threatened consequence"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "verdict": {
+      "type": "choice",
+      "choice": "phishing",
+      "confidence": 1,
+      "probabilities": {
+        "spam": 0,
+        "unclear": 0,
+        "phishing": 1,
+        "legitimate": 0
+      }
+    },
+    "asks_credentials": {
+      "type": "noul",
+      "noul": 0.81
+    },
+    "pressure": {
+      "type": "score",
+      "score": 2,
+      "confidence": 1,
+      "legend": {
+        "0": "None: informational",
+        "1": "Mild: a gentle reminder",
+        "2": "Strong: a deadline or a threatened consequence"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 1
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 524,
+    "output_tokens": 84
+  },
+  "costUsd": 0.000022008000000000003,
+  "clientMs": 298
+}

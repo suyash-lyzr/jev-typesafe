@@ -2,7 +2,7 @@ import 'server-only'
 import { Redis } from '@upstash/redis'
 import { Ratelimit } from '@upstash/ratelimit'
 import { createHash } from 'node:crypto'
-import { PRICING } from './pricing'
+import { PRICING, type LlmPricing } from './pricing'
 import { clientIp, isAllowedOrigin, normaliseIp, originPolicyFromEnv } from './net'
 
 /**
@@ -27,7 +27,8 @@ export const num = (v: string | undefined, fallback: number) => {
 
 export const LIMITS = {
   play: { perMinute: num(process.env.PLAY_MIN, 30), perDay: num(process.env.PLAY_DAY, 300) },
-  compare: { perMinute: num(process.env.COMPARE_MIN, 10), perDay: num(process.env.COMPARE_DAY, 20) },
+  /** perDay is the free comparison quota per network per UTC day (lib/compare-quota.ts). */
+  compare: { perMinute: num(process.env.COMPARE_MIN, 10), perDay: num(process.env.COMPARE_DAY, 5) },
   /** Ceilings between the per-IP windows and the dollar cap, so a distributed
    *  burst degrades to 429 instead of burning the day's budget in minutes. */
   global: {
@@ -101,7 +102,6 @@ const limiters = {
   playMin: limiter(LIMITS.play.perMinute, '60 s', 'play:min'),
   playDay: limiter(LIMITS.play.perDay, '24 h', 'play:day'),
   compareMin: limiter(LIMITS.compare.perMinute, '60 s', 'compare:min'),
-  compareDay: limiter(LIMITS.compare.perDay, '24 h', 'compare:day'),
   globalJevMin: limiter(LIMITS.global.jevPerMinute, '60 s', 'g:jev:min'),
   globalJevDay: limiter(LIMITS.global.jevPerDay, '24 h', 'g:jev:day'),
   globalCompareMin: limiter(LIMITS.global.comparePerMinute, '60 s', 'g:cmp:min'),
@@ -171,7 +171,9 @@ export async function checkRateLimits(
   // going to be served.
   const order = [
     ['minute', c ? limiters.compareMin : limiters.playMin, key],
-    ['day', c ? limiters.compareDay : limiters.playDay, key],
+    // Comparisons count against the daily quota instead (lib/compare-quota.ts),
+    // which can hand a comparison back when OpenAI was never actually called.
+    ['day', c ? null : limiters.playDay, key],
     ['global', c ? limiters.globalCompareMin : limiters.globalJevMin, 'all'],
     ['global', c ? limiters.globalCompareDay : limiters.globalJevDay, 'all'],
   ] as const
@@ -276,10 +278,10 @@ export function settleJevSpend(r: Reservation, actualInputTokens: number): Promi
   return settle(r, (actualInputTokens * PRICING.jev.inPerM) / 1_000_000)
 }
 
-export function reserveOpenAiSpend(estimatedPromptTokens: number): Promise<Reservation> {
+export function reserveOpenAiSpend(estimatedPromptTokens: number, pricing: LlmPricing = PRICING.llm): Promise<Reservation> {
   const usd =
-    (estimatedPromptTokens * PRICING.llm.inPerM) / 1_000_000 +
-    (OPENAI_MAX_OUTPUT_TOKENS * PRICING.llm.outPerM) / 1_000_000
+    (estimatedPromptTokens * pricing.inPerM) / 1_000_000 +
+    (OPENAI_MAX_OUTPUT_TOKENS * pricing.outPerM) / 1_000_000
   return reserve('openai', usd, LIMITS.budget.openaiUsd)
 }
 

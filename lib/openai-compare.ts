@@ -2,6 +2,7 @@ import 'server-only'
 import type { JevRequest, Question } from './schema'
 import type { LlmPricing } from './pricing'
 import { OPENAI_MAX_OUTPUT_TOKENS } from './guards'
+import { findLlmModel } from './llm-models'
 
 /**
  * The LLM side of the comparison.
@@ -130,6 +131,9 @@ const EFFORT_LADDER = ['none', 'minimal', 'low'] as const
 const effortRung = new Map<string, number>()
 
 function startingRung(model: string): number {
+  // A catalogued model's setting was checked against the live API; it wins.
+  const known = findLlmModel(model)
+  if (known) return known.effort === null ? EFFORT_LADDER.length : EFFORT_LADDER.indexOf(known.effort)
   const configured = process.env.OPENAI_REASONING_EFFORT?.trim()
   if (configured) {
     const i = EFFORT_LADDER.indexOf(configured as (typeof EFFORT_LADDER)[number])
@@ -143,6 +147,7 @@ function reasoningEffortFor(model: string): string | null {
   const configured = process.env.OPENAI_REASONING_EFFORT?.trim()
   if (configured === 'off') return null
   const rung = effortRung.get(model) ?? startingRung(model)
+  if (findLlmModel(model)) return rung >= EFFORT_LADDER.length ? null : EFFORT_LADDER[rung]
   if (rung >= EFFORT_LADDER.length) return null
   // A configured value outside the ladder is sent as-is, once.
   if (configured && !effortRung.has(model) && !(EFFORT_LADDER as readonly string[]).includes(configured)) {

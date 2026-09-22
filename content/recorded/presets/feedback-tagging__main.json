@@ -1,0 +1,78 @@
+{
+  "preset": "feedback-tagging",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:40:00.622Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "Survey answer, account \"Harbor Analytics\" (renewal in 5 weeks):\n\"We've used you for two years. The new pricing doubles our bill for the same seats, and a competitor just offered us 40% off. Support is still great, but finance is asking me to justify the renewal next month.\"",
+    "model": "jev-latest",
+    "questions": {
+      "category": {
+        "type": "choice",
+        "instructions": "What is this feedback mainly about?",
+        "criteria": {
+          "pricing": "Price, plans or billing",
+          "product_quality": "Bugs, speed or reliability",
+          "support": "The support team or response times",
+          "missing_feature": "Something the product does not do",
+          "other": "Something else"
+        }
+      },
+      "churn_risk": {
+        "type": "score",
+        "instructions": "How likely is this customer to leave?",
+        "criteria": [
+          "Happy and staying",
+          "Some friction, likely to stay",
+          "Actively considering leaving",
+          "Has decided to leave"
+        ]
+      },
+      "mentions_competitor": {
+        "type": "noul",
+        "instructions": "Does the customer mention an offer from a competitor?"
+      }
+    }
+  },
+  "answers": {
+    "category": {
+      "type": "choice",
+      "choice": "pricing",
+      "confidence": 1,
+      "probabilities": {
+        "pricing": 1,
+        "missing_feature": 0,
+        "support": 0,
+        "other": 0,
+        "product_quality": 0
+      }
+    },
+    "churn_risk": {
+      "type": "score",
+      "score": 2.03,
+      "confidence": 0.97,
+      "legend": {
+        "0": "Happy and staying",
+        "1": "Some friction, likely to stay",
+        "2": "Actively considering leaving",
+        "3": "Has decided to leave"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 0.97,
+        "3": 0.03
+      }
+    },
+    "mentions_competitor": {
+      "type": "noul",
+      "noul": 0.99
+    }
+  },
+  "usage": {
+    "input_tokens": 505,
+    "output_tokens": 90
+  },
+  "costUsd": 0.000021210000000000002,
+  "clientMs": 307
+}

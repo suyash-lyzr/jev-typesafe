@@ -1,0 +1,79 @@
+{
+  "preset": "rag-check",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:26:31.859Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "query": "How many days do customers have to return an item for a full refund?",
+      "passage": "Refund processing: once a returned item reaches our warehouse, refunds are issued to the original payment method within 5–7 business days. Store credit is issued instantly."
+    },
+    "model": "jev-latest",
+    "questions": {
+      "answers_query": {
+        "type": "noul",
+        "instructions": "Does `passage` directly answer `query`?"
+      },
+      "passage_role": {
+        "type": "choice",
+        "instructions": "How does `passage` relate to `query`?",
+        "criteria": {
+          "direct_answer": "States the answer outright",
+          "background": "Related context, but not the answer",
+          "contradicts": "Says something that conflicts with the likely answer",
+          "other": "About something else"
+        }
+      },
+      "relevance": {
+        "type": "score",
+        "instructions": "How useful is `passage` for answering `query`?",
+        "criteria": [
+          "Useless",
+          "Marginally useful",
+          "Useful",
+          "Essential"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "answers_query": {
+      "type": "noul",
+      "noul": 0.02
+    },
+    "passage_role": {
+      "type": "choice",
+      "choice": "background",
+      "confidence": 0.96,
+      "probabilities": {
+        "direct_answer": 0,
+        "contradicts": 0,
+        "other": 0.03,
+        "background": 0.97
+      }
+    },
+    "relevance": {
+      "type": "score",
+      "score": 0.04,
+      "confidence": 0.96,
+      "legend": {
+        "0": "Useless",
+        "1": "Marginally useful",
+        "2": "Useful",
+        "3": "Essential"
+      },
+      "probabilities": {
+        "0": 0.96,
+        "1": 0.04,
+        "2": 0,
+        "3": 0
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 497,
+    "output_tokens": 83
+  },
+  "costUsd": 0.000020874000000000004,
+  "clientMs": 294
+}

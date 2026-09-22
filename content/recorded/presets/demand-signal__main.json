@@ -1,0 +1,76 @@
+{
+  "preset": "demand-signal",
+  "variant": "main",
+  "recordedAt": "2026-09-21T22:00:26.418Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "Sales note — Meridian Foods (3 plants). They are leaving their current supplier after two missed deliveries and want quotes for about 40% more volume than last year, starting in Q1. They also said a competitor is undercutting us by 8%.",
+    "model": "jev-latest",
+    "questions": {
+      "purchase_intent": {
+        "type": "score",
+        "instructions": "How strong is the customer's intent to buy more?",
+        "criteria": [
+          "None",
+          "Exploring",
+          "Evaluating options",
+          "Committed"
+        ]
+      },
+      "competitor_pressure": {
+        "type": "noul",
+        "instructions": "Does the note mention pressure from a competitor?"
+      },
+      "direction": {
+        "type": "choice",
+        "instructions": "Which way is this customer's demand moving?",
+        "criteria": {
+          "increase": "Buying more than before",
+          "decrease": "Buying less than before",
+          "flat": "About the same",
+          "unclear": "Cannot tell"
+        }
+      }
+    }
+  },
+  "answers": {
+    "purchase_intent": {
+      "type": "score",
+      "score": 2.2,
+      "confidence": 0.76,
+      "legend": {
+        "0": "None",
+        "1": "Exploring",
+        "2": "Evaluating options",
+        "3": "Committed"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.02,
+        "2": 0.76,
+        "3": 0.22
+      }
+    },
+    "competitor_pressure": {
+      "type": "noul",
+      "noul": 0.98
+    },
+    "direction": {
+      "type": "choice",
+      "choice": "increase",
+      "confidence": 1,
+      "probabilities": {
+        "unclear": 0,
+        "increase": 1,
+        "decrease": 0,
+        "flat": 0
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 469,
+    "output_tokens": 82
+  },
+  "costUsd": 0.000019698,
+  "clientMs": 343
+}

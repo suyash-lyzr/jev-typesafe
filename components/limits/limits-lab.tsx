@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { InlineBanner } from '@/components/ui/inline-banner'
@@ -45,6 +46,19 @@ function verdictFor(
     return { outcome: 'no-answer', detail: `No answer came back for ${missing.join(', ')}, so this run tested nothing. Run it again.` }
   }
   return check(answers)
+}
+
+/** Long prose, three lines until asked for. */
+function Clamp({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = React.useState(false)
+  return (
+    <div className="mt-2 text-sm leading-relaxed text-muted-foreground">
+      <p className={cn(!open && 'line-clamp-3')}>{children}</p>
+      <button type="button" onClick={() => setOpen((v) => !v)} className="mt-1 text-xs text-brand hover:underline">
+        {open ? 'Less' : 'More'}
+      </button>
+    </div>
+  )
 }
 
 function questionsOf(preset: Preset, variant: PresetVariant) {
@@ -103,13 +117,20 @@ function RunCard({ spec, preset, variant }: { spec: LimitSpec; preset: Preset; v
   const many = Object.keys(questions).length > 4
 
   return (
-    <div className="flex flex-col rounded-lg border border-border bg-card p-5">
+    <div className="flex flex-col rounded-[14px] border border-border bg-card p-5">
       <div className="flex flex-wrap items-center gap-2">
-        <Chip variant="outline">{isFix ? 'The rewrite' : 'The way that breaks'}</Chip>
+        <span
+          className={cn(
+            'rounded-full px-2 py-0.5 text-[11px] font-medium',
+            isFix ? 'bg-success-soft text-success-text' : 'bg-danger-soft text-danger-text'
+          )}
+        >
+          {isFix ? 'fix' : 'breaks'}
+        </span>
         <h3 className="text-[15px] font-semibold">{variant.label}</h3>
       </div>
 
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{variant.description}</p>
+      <Clamp>{variant.description}</Clamp>
 
       <p className="mt-3 truncate font-mono text-[11px] text-muted-foreground" title={stateLine(variant.state)}>
         state {stateLine(variant.state)}
@@ -158,9 +179,9 @@ function RunCard({ spec, preset, variant }: { spec: LimitSpec; preset: Preset; v
       {shown && (
         <div className="mt-4 space-y-4 border-t border-border pt-4">
           {recorded && (
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">Recorded, not live</span> — {recorded.source} (
-              {recorded.model}, {recorded.date}). {recorded.note}
+            <p className="text-xs text-faint" title={recorded.note}>
+              <span className="mr-1.5 rounded-full bg-brand-soft px-2 py-0.5 font-mono text-[11px] text-brand-text">replay</span>
+              {recorded.source} · {recorded.model} · {recorded.date}
             </p>
           )}
           {Object.entries(shown)
@@ -204,6 +225,20 @@ function RunCard({ spec, preset, variant }: { spec: LimitSpec; preset: Preset; v
   )
 }
 
+
+/** Names exactly as TypeSafe's jaggedness table has them (reviewed 2026-09-17). */
+const MODE_NAMES: Record<number, string> = {
+  1: 'Literal reading',
+  2: 'Math and numbers',
+  3: 'Date and time comparison',
+  4: 'Indirection',
+  5: 'Large state full of irrelevant detail',
+  6: 'Adversarial content',
+  7: 'Contradictory instructions and criteria',
+  8: 'Common-sense structural invariants',
+  9: 'Generation',
+}
+
 export function LimitSection({ spec }: { spec: LimitSpec }) {
   const preset = getPreset(spec.preset)
   if (!preset) return null
@@ -213,8 +248,8 @@ export function LimitSection({ spec }: { spec: LimitSpec }) {
 
   return (
     <section id={spec.anchor} className="scroll-mt-24 border-t border-border pt-8">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-        {spec.mode ? `Failure mode ${spec.mode} of 9` : 'From the Score page'}
+      <p className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
+        {spec.mode ? `Failure mode ${spec.mode} of 9 · ${MODE_NAMES[spec.mode]}` : 'Not one of the nine · from the Score page'}
       </p>
       <h2 className="mt-1 text-2xl font-semibold">{spec.heading}</h2>
       <p className="mt-2 max-w-[70ch] text-sm leading-relaxed text-muted-foreground">

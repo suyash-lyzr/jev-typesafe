@@ -1,0 +1,77 @@
+{
+  "preset": "ad-review",
+  "variant": "main",
+  "recordedAt": "2026-09-21T22:00:25.672Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "ad_copy": "Lose 10 kg in 7 days with SlimTea — doctors hate it! No diet, no exercise. 80% off today only.",
+      "landing_page": "Supplement shop with a \"clinically proven\" badge and no study linked.",
+      "placement": "Health & fitness news site, 18+ audience"
+    },
+    "model": "jev-latest",
+    "questions": {
+      "prohibited_claim": {
+        "type": "noul",
+        "instructions": "Does the ad make a health claim that ad policies prohibit?"
+      },
+      "brand_safety": {
+        "type": "choice",
+        "instructions": "How safe is this ad for the placement?",
+        "criteria": {
+          "safe": "Fine to run as it is",
+          "sensitive": "Allowed, but only with restrictions",
+          "unsafe": "Should not run here",
+          "unclear": "Cannot tell"
+        }
+      },
+      "quality": {
+        "type": "score",
+        "instructions": "How good is the creative?",
+        "criteria": [
+          "Misleading or low quality",
+          "Acceptable",
+          "Clear, accurate and compelling"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "prohibited_claim": {
+      "type": "noul",
+      "noul": 0.96
+    },
+    "brand_safety": {
+      "type": "choice",
+      "choice": "unsafe",
+      "confidence": 0.99,
+      "probabilities": {
+        "unclear": 0,
+        "unsafe": 0.99,
+        "safe": 0,
+        "sensitive": 0.01
+      }
+    },
+    "quality": {
+      "type": "score",
+      "score": 0,
+      "confidence": 1,
+      "legend": {
+        "0": "Misleading or low quality",
+        "1": "Acceptable",
+        "2": "Clear, accurate and compelling"
+      },
+      "probabilities": {
+        "0": 1,
+        "1": 0,
+        "2": 0
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 498,
+    "output_tokens": 83
+  },
+  "costUsd": 0.000020916,
+  "clientMs": 340
+}

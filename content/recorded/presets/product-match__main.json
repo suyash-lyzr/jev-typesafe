@@ -1,0 +1,81 @@
+{
+  "preset": "product-match",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:40:02.146Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "session": "Viewed 3 trail-running shoes in the last 10 minutes, added a hydration vest to the cart, searched \"waterproof trail shoes size 9\".",
+      "candidate_product": "Merino running socks, waterproof-lined, 3-pack, $34"
+    },
+    "model": "jev-latest",
+    "questions": {
+      "likely_to_like": {
+        "type": "noul",
+        "instructions": "Would this shopper probably like the candidate product?"
+      },
+      "session_relevance": {
+        "type": "score",
+        "instructions": "How relevant is the candidate product to what the shopper is doing right now?",
+        "criteria": [
+          "Unrelated",
+          "Same broad category",
+          "Useful alongside what they are buying",
+          "Exactly what they are looking for"
+        ]
+      },
+      "placement": {
+        "type": "choice",
+        "instructions": "Where should the candidate product be shown?",
+        "criteria": {
+          "product_page": "On the product page they are viewing",
+          "cart": "In the cart as an add-on",
+          "email": "In a follow-up email",
+          "nowhere": "Do not show it",
+          "other": "Somewhere else"
+        }
+      }
+    }
+  },
+  "answers": {
+    "likely_to_like": {
+      "type": "noul",
+      "noul": 0.68
+    },
+    "session_relevance": {
+      "type": "score",
+      "score": 1.91,
+      "confidence": 0.9,
+      "legend": {
+        "0": "Unrelated",
+        "1": "Same broad category",
+        "2": "Useful alongside what they are buying",
+        "3": "Exactly what they are looking for"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.09,
+        "2": 0.91,
+        "3": 0
+      }
+    },
+    "placement": {
+      "type": "choice",
+      "choice": "cart",
+      "confidence": 0.36,
+      "probabilities": {
+        "other": 0.05,
+        "cart": 0.48,
+        "nowhere": 0.04,
+        "product_page": 0.42,
+        "email": 0.01
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 516,
+    "output_tokens": 88
+  },
+  "costUsd": 0.000021672000000000002,
+  "clientMs": 301
+}

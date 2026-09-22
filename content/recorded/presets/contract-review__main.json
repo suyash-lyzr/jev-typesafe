@@ -1,0 +1,78 @@
+{
+  "preset": "contract-review",
+  "variant": "main",
+  "recordedAt": "2026-09-21T22:00:24.227Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "requirement": "Every vendor contract must include a data-breach notification clause of 72 hours or less.",
+      "clause": "Section 9.2. Vendor will notify Customer of any Security Incident affecting Customer Data without undue delay after becoming aware of it."
+    },
+    "model": "jev-latest",
+    "questions": {
+      "meets_requirement": {
+        "type": "noul",
+        "instructions": "Does the clause satisfy the requirement?"
+      },
+      "clause_type": {
+        "type": "choice",
+        "instructions": "What kind of clause is this?",
+        "criteria": {
+          "breach_notification": "When and how a security incident is reported",
+          "liability": "Caps or exclusions of liability",
+          "termination": "How the contract can be ended",
+          "confidentiality": "Protection of confidential information",
+          "other": "Another kind of clause"
+        }
+      },
+      "risk": {
+        "type": "score",
+        "instructions": "How much legal risk does the clause carry against the requirement?",
+        "criteria": [
+          "Compliant",
+          "Ambiguous: counsel should confirm",
+          "Non-compliant: must be renegotiated"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "meets_requirement": {
+      "type": "noul",
+      "noul": 0.08
+    },
+    "clause_type": {
+      "type": "choice",
+      "choice": "breach_notification",
+      "confidence": 1,
+      "probabilities": {
+        "confidentiality": 0,
+        "breach_notification": 1,
+        "termination": 0,
+        "liability": 0,
+        "other": 0
+      }
+    },
+    "risk": {
+      "type": "score",
+      "score": 1.83,
+      "confidence": 0.74,
+      "legend": {
+        "0": "Compliant",
+        "1": "Ambiguous: counsel should confirm",
+        "2": "Non-compliant: must be renegotiated"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.17,
+        "2": 0.83
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 511,
+    "output_tokens": 97
+  },
+  "costUsd": 0.000021462,
+  "clientMs": 294
+}

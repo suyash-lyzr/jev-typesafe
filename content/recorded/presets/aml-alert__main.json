@@ -1,0 +1,79 @@
+{
+  "preset": "aml-alert",
+  "variant": "main",
+  "recordedAt": "2026-09-21T22:00:23.531Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "customer": "Sole trader, catering business. KYC turnover: £80k a year.",
+      "alert": "12 cash deposits of £8,900–£9,500 at different branches over 9 days. Each day's total sent the same day to a beneficiary added last week, abroad.",
+      "customer_explanation": "Seasonal event income."
+    },
+    "model": "jev-latest",
+    "questions": {
+      "suspicious": {
+        "type": "noul",
+        "instructions": "Is this activity suspicious for money laundering?"
+      },
+      "typology": {
+        "type": "choice",
+        "instructions": "Which laundering pattern does the activity most resemble?",
+        "criteria": {
+          "structuring": "Deposits kept just under a reporting threshold",
+          "layering": "Money moved quickly through several accounts",
+          "trade_based": "Value hidden in invoices for goods",
+          "none": "Consistent with legitimate business",
+          "other": "Another pattern"
+        }
+      },
+      "priority": {
+        "type": "score",
+        "instructions": "How urgently should an investigator look at this alert?",
+        "criteria": [
+          "Close as a false positive",
+          "Review this week",
+          "Escalate to an investigator today"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "suspicious": {
+      "type": "noul",
+      "noul": 0.9
+    },
+    "typology": {
+      "type": "choice",
+      "choice": "structuring",
+      "confidence": 0.8,
+      "probabilities": {
+        "layering": 0.15,
+        "other": 0.01,
+        "structuring": 0.84,
+        "none": 0,
+        "trade_based": 0
+      }
+    },
+    "priority": {
+      "type": "score",
+      "score": 1.99,
+      "confidence": 0.98,
+      "legend": {
+        "0": "Close as a false positive",
+        "1": "Review this week",
+        "2": "Escalate to an investigator today"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.01,
+        "2": 0.99
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 531,
+    "output_tokens": 92
+  },
+  "costUsd": 0.000022302000000000004,
+  "clientMs": 320
+}

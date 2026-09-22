@@ -1,0 +1,97 @@
+{
+  "preset": "invoice-extraction",
+  "variant": "main",
+  "recordedAt": "2026-09-22T00:07:46.319Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "INVOICE #INV-20931\nNordic Print Supply AB · Org. nr 556812-4471\nBill to: Lyra Studios Ltd, London\n\n500 × A5 flyers, matte — €340.00\nDesign proof revisions — €80.00\nVAT (reverse charge) — €0.00\nTotal due: €420.00\n\nPayment terms: 30 days. Please quote the invoice number with your transfer.",
+    "model": "jev-latest",
+    "questions": {
+      "total_due": {
+        "type": "choice",
+        "instructions": "Which amount on the invoice is the total the buyer must pay?",
+        "criteria": {
+          "€340.00": null,
+          "€80.00": null,
+          "€0.00": null,
+          "€420.00": null,
+          "none": "No total due is stated"
+        }
+      },
+      "payment_terms": {
+        "type": "choice",
+        "instructions": "When is payment due?",
+        "criteria": {
+          "on_receipt": "Immediately, on receipt",
+          "14_days": "Within 14 days",
+          "30_days": "Within 30 days",
+          "60_days": "Within 60 days",
+          "unclear": "No terms stated, or cannot tell"
+        }
+      },
+      "currency": {
+        "type": "choice",
+        "instructions": "Which currency is the total in?",
+        "criteria": {
+          "USD": null,
+          "EUR": null,
+          "GBP": null,
+          "INR": null,
+          "other": "Another currency or none stated"
+        }
+      },
+      "already_paid": {
+        "type": "noul",
+        "instructions": "Does the document say it has already been paid?"
+      }
+    }
+  },
+  "answers": {
+    "total_due": {
+      "type": "choice",
+      "choice": "€420.00",
+      "confidence": 1,
+      "probabilities": {
+        "€340.00": 0,
+        "€420.00": 1,
+        "none": 0,
+        "€0.00": 0,
+        "€80.00": 0
+      }
+    },
+    "payment_terms": {
+      "type": "choice",
+      "choice": "30_days",
+      "confidence": 1,
+      "probabilities": {
+        "60_days": 0,
+        "14_days": 0,
+        "unclear": 0,
+        "30_days": 1,
+        "on_receipt": 0
+      }
+    },
+    "currency": {
+      "type": "choice",
+      "choice": "EUR",
+      "confidence": 1,
+      "probabilities": {
+        "USD": 0,
+        "INR": 0,
+        "GBP": 0,
+        "EUR": 1,
+        "other": 0
+      }
+    },
+    "already_paid": {
+      "type": "noul",
+      "noul": 0.02
+    }
+  },
+  "usage": {
+    "input_tokens": 657,
+    "output_tokens": 210
+  },
+  "costUsd": 0.000027594,
+  "clientMs": 864
+}

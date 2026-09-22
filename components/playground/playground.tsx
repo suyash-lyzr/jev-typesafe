@@ -2,11 +2,11 @@
 
 import * as React from 'react'
 import { useSearchParams } from 'next/navigation'
-import { History, LayoutGrid, Share2, RotateCcw } from 'lucide-react'
+import { ChevronDown, History, Share2, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { SegmentedControl, SegmentedControlItem } from '@/components/ui/segmented-control'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 import type { ImperativePanelGroupHandle } from 'react-resizable-panels'
@@ -19,6 +19,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { StateEditor, QuestionsList, LintBar, RunBar } from './editor-pane'
+import { NextUseCaseButton, UseCaseHeader, UseCasePicker } from './use-case-picker'
+import { StepNumber } from './type-badge'
 import { ResultTabs, AnswersTab, ErrorCard } from './result-pane'
 import { PolicyTab, JsonTab, CodeTab } from './policy-tab'
 import { CompareTab } from './compare-tab'
@@ -28,7 +30,7 @@ import { usePlayground, type LoadInput } from '@/lib/store'
 import { decodeShare } from '@/lib/share'
 import { editorRequestHash } from '@/lib/serialize'
 import { loadRuns, clearRuns, loadSettings, saveSettings, type RunRecord } from '@/lib/storage'
-import { getPreset, presetToLoad, allPresets } from '@/content/presets'
+import { getPreset, presetToLoad } from '@/content/presets'
 import { formatUsd } from '@/lib/pricing'
 
 /**
@@ -42,6 +44,9 @@ import { formatUsd } from '@/lib/pricing'
  */
 
 export const AUTORUN_KEY = 'jevlab.autorun.once'
+
+/** What /play opens on when the URL asks for nothing. */
+const DEFAULT_USE_CASE = 'support-ticket'
 
 /** The lg breakpoint, as JS: exactly one layout is ever mounted. */
 const DESKTOP_QUERY = '(min-width: 1024px)'
@@ -64,59 +69,31 @@ function useHasEdits() {
   return () => editorRequestHash(editorRequest()) !== baselineHash
 }
 
-function PresetsPanel({ onPick }: { onPick: (input: LoadInput) => void }) {
-  return (
-    <div className="space-y-4">
-      <button
-        onClick={() => onPick({ state: '', questions: {}, title: 'Blank request', presetId: null })}
-        className="w-full rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-accent"
-      >
-        Blank request
-        <span className="block text-xs text-muted-foreground">Start from nothing.</span>
-      </button>
-
-      {allPresets.map((preset) => (
-        <div key={preset.slug}>
-          <p className="mb-1 text-[13px] font-medium">{preset.title}</p>
-          <p className="mb-1.5 text-xs text-muted-foreground">{preset.teaches}</p>
-          <div className="flex flex-wrap gap-1">
-            {preset.variants.map((variant) => (
-              <button
-                key={variant.id}
-                onClick={() => onPick(presetToLoad(preset, variant.id))}
-                className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
-                title={variant.description}
-              >
-                {variant.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function RecentPanel({ onPick }: { onPick: (run: RunRecord) => void }) {
   const [runs, setRuns] = React.useState<RunRecord[]>([])
   React.useEffect(() => setRuns(loadRuns()), [])
 
   if (runs.length === 0) {
-    return <p className="text-sm text-muted-foreground">No runs yet in this browser.</p>
+    return <p className="px-1 py-2 text-[13px] text-muted-foreground">No runs yet in this browser.</p>
   }
 
   return (
-    <div className="space-y-2">
+    <div>
+      <ul className="max-h-[360px] space-y-0.5 overflow-y-auto">
       {runs.map((run) => (
-        <button key={run.id} onClick={() => onPick(run)} className="w-full rounded-md border border-border px-3 py-2 text-left hover:bg-accent">
-          <span className="block truncate text-sm">{run.title}</span>
+        <li key={run.id}>
+        <button onClick={() => onPick(run)} className="w-full rounded-lg px-2.5 py-2 text-left hover:bg-muted">
+          <span className="block truncate text-[13px] font-medium">{run.title}</span>
           <span className="block font-mono text-xs tabular text-muted-foreground">
             {run.model} · {run.timing.jevMs} ms · {formatUsd(run.costUsd)}
             {run.stateTruncated ? ' · state not kept' : ''}
           </span>
         </button>
+        </li>
       ))}
+      </ul>
       <Button
+        className="mt-1"
         variant="ghost"
         size="sm"
         onClick={() => {
@@ -132,12 +109,12 @@ function RecentPanel({ onPick }: { onPick: (run: RunRecord) => void }) {
 
 export function Playground() {
   const params = useSearchParams()
-  const { tab, load, restoreRun, run, running, announcement, title, presetId, variantId } = usePlayground()
+  const { tab, load, restoreRun, run, running, announcement, presetId, variantId } = usePlayground()
   const hasEdits = useHasEdits()
 
   const [mounted, setMounted] = React.useState(false)
   const [shareOpen, setShareOpen] = React.useState(false)
-  const [panel, setPanel] = React.useState<'presets' | 'recent' | null>(null)
+  const [recentOpen, setRecentOpen] = React.useState(false)
   const [mobileView, setMobileView] = React.useState<'edit' | 'results'>('edit')
   const isDesktop = useIsDesktop()
   const selectedQuestion = usePlayground((s) => s.selectedQuestion)
@@ -210,7 +187,7 @@ export function Playground() {
       return
     }
 
-    const preset = getPreset(requested ?? 'first-run')
+    const preset = getPreset(requested ?? DEFAULT_USE_CASE)
     if (preset) {
       ask(() => load({
         ...presetToLoad(preset, params.get('v') ?? undefined, { compare }),
@@ -218,12 +195,12 @@ export function Playground() {
           ? compare
             ? 'Compare is on for this preset. Press Run to send it to Jev and the LLM together.'
             : null
-          : 'Loaded the first-run preset. Pick another from Presets, or start blank.',
+          : null,
       }))
     } else {
-      const first = getPreset('first-run')!
+      const first = getPreset(DEFAULT_USE_CASE)!
       ask(() =>
-        load({ ...presetToLoad(first, undefined, { compare }), notice: `There is no preset called "${requested}". Loaded the first-run preset instead.` })
+        load({ ...presetToLoad(first, undefined, { compare }), notice: `There is no preset called "${requested}". Loaded the support-ticket example instead.` })
       )
     }
     setMounted(true)
@@ -276,10 +253,12 @@ export function Playground() {
   const preset = presetId ? getPreset(presetId) : null
 
   const editor = (
-    <div className="flex h-full flex-col overflow-y-auto">
+    <div className="flex h-full flex-col overflow-y-auto bg-sidebar">
+      <UseCaseHeader onPick={(input) => guarded(() => load(input))} />
       <StateEditor />
       <QuestionsList />
-      <div className="mt-auto">
+      {/* Sticky as one block, so Run is always in reach however long the questions get. */}
+      <div className="sticky bottom-0 z-10 mt-auto">
         <LintBar />
         <RunBar />
       </div>
@@ -298,76 +277,41 @@ export function Playground() {
   )
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
-      {/* App bar */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2">
-        <h1 className="truncate text-sm font-medium">{title}</h1>
-
-        {preset && preset.variants.length > 1 && (
-          <div className="flex flex-wrap gap-1" role="group" aria-label="Variants">
-            {preset.variants.map((variant) => (
-              <button
-                key={variant.id}
-                title={variant.description}
-                aria-pressed={variantId === variant.id}
-                onClick={() => guarded(() => load(presetToLoad(preset, variant.id)))}
-                className={cn(
-                  'rounded-md border px-2 py-0.5 text-xs transition-colors duration-fast',
-                  variantId === variant.id ? 'border-foreground font-medium' : 'border-border text-muted-foreground hover:bg-accent'
-                )}
-              >
-                {variant.label}
-              </button>
-            ))}
-          </div>
-        )}
+    <div className="flex h-[calc(100dvh-60px)] flex-col">
+      {/* App bar: step 1 is the use-case picker, right where the title would be. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-card px-4 py-2">
+        <h1 className="hidden font-display text-[15px] font-semibold md:block">Playground</h1>
+        <span className="hidden h-5 w-px bg-border md:block" aria-hidden />
+        <span className="hidden items-center gap-2 font-display text-[14px] font-semibold tracking-[-0.01em] sm:inline-flex"><StepNumber n={1} />Use case</span>
+        <div className="flex min-w-0 flex-1 items-center gap-1 sm:flex-none">
+          <UseCasePicker onPick={(input) => guarded(() => load(input))} />
+          <NextUseCaseButton onPick={(input) => guarded(() => load(input))} />
+        </div>
 
         <div className="ml-auto flex items-center gap-1">
-          <Sheet open={panel === 'presets'} onOpenChange={(v) => setPanel(v ? 'presets' : null)}>
-            <SheetTrigger asChild>
+          <Popover open={recentOpen} onOpenChange={setRecentOpen}>
+            <PopoverTrigger asChild>
               <Button variant="ghost" size="sm">
-                <LayoutGrid className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Presets
+                <History className="h-3.5 w-3.5 sm:mr-1.5" aria-hidden />
+                <span className="sr-only sm:not-sr-only">Recent</span>
+                <ChevronDown className="ml-1 hidden h-3 w-3 text-faint sm:block" aria-hidden />
               </Button>
-            </SheetTrigger>
-            <SheetContent className="w-full overflow-y-auto sm:max-w-[360px]">
-              <SheetHeader>
-                <SheetTitle>Presets</SheetTitle>
-              </SheetHeader>
-              <div className="mt-4">
-                <PresetsPanel
-                  onPick={(input) => {
-                    setPanel(null)
-                    guarded(() => load(input))
-                  }}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
-
-          <Sheet open={panel === 'recent'} onOpenChange={(v) => setPanel(v ? 'recent' : null)}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <History className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Recent
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-full overflow-y-auto sm:max-w-[360px]">
-              <SheetHeader>
-                <SheetTitle>Recent runs</SheetTitle>
-              </SheetHeader>
-              <div className="mt-4">
-                <RecentPanel
-                  onPick={(record) => {
-                    setPanel(null)
-                    guarded(() => restoreRun(record))
-                  }}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
+            </PopoverTrigger>
+            <PopoverContent align="end" sideOffset={6} className="w-[min(340px,calc(100vw-24px))] rounded-[14px] p-2 shadow-float">
+              <p className="px-2.5 pb-1.5 pt-1 font-mono text-[11px] uppercase tracking-[0.1em] text-faint">Recent runs</p>
+              <RecentPanel
+                onPick={(record) => {
+                  setRecentOpen(false)
+                  guarded(() => restoreRun(record))
+                }}
+              />
+            </PopoverContent>
+          </Popover>
 
           <Button variant="outline" size="sm" onClick={() => setShareOpen(true)} aria-keyshortcuts="Meta+S Control+S">
-            <Share2 className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Share
-            <span className="ml-1.5 hidden font-mono text-[10px] text-muted-foreground xl:inline" aria-hidden>
+            <Share2 className="h-3.5 w-3.5 sm:mr-1.5" aria-hidden />
+                <span className="sr-only sm:not-sr-only">Share</span>
+            <span className="ml-1.5 hidden font-mono text-[10px] text-faint xl:inline" aria-hidden>
               {mod}S
             </span>
           </Button>
@@ -379,7 +323,8 @@ export function Playground() {
               onClick={() => guarded(() => load(presetToLoad(preset, variantId ?? undefined)))}
               title="Restore this preset's starting point. Your runs stay in Recent."
             >
-              <RotateCcw className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Reset
+              <RotateCcw className="h-3.5 w-3.5 sm:mr-1.5" aria-hidden />
+                <span className="sr-only sm:not-sr-only">Reset</span>
             </Button>
           )}
         </div>

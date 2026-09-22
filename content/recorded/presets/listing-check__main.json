@@ -1,0 +1,80 @@
+{
+  "preset": "listing-check",
+  "variant": "main",
+  "recordedAt": "2026-09-22T00:07:48.085Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "title": "Airpods Pro 2 ORIGINAL sealed box – 70% OFF!!",
+      "price": "$59",
+      "seller": "New seller, 0 sales, joined 2 days ago",
+      "description": "100% genuine apple product, ships from overseas warehouse, no returns. Message on WhatsApp for bulk orders."
+    },
+    "model": "jev-latest",
+    "questions": {
+      "counterfeit": {
+        "type": "noul",
+        "instructions": "Is this listing likely to be selling counterfeit goods?"
+      },
+      "policy": {
+        "type": "choice",
+        "instructions": "Which marketplace policy does this listing most clearly break?",
+        "criteria": {
+          "counterfeit_goods": "Selling fakes of a branded product",
+          "off_platform_contact": "Pushing buyers to pay or talk outside the marketplace",
+          "misleading_price": "A price or discount that misrepresents the item",
+          "prohibited_item": "An item the marketplace does not allow at all",
+          "none": "It breaks no policy"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "How should the marketplace treat this listing?",
+        "criteria": [
+          "Fine as it is",
+          "Needs edits before it can stay up",
+          "Must be removed"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "counterfeit": {
+      "type": "noul",
+      "noul": 0.92
+    },
+    "policy": {
+      "type": "choice",
+      "choice": "off_platform_contact",
+      "confidence": 0.93,
+      "probabilities": {
+        "misleading_price": 0.02,
+        "prohibited_item": 0,
+        "none": 0,
+        "counterfeit_goods": 0.04,
+        "off_platform_contact": 0.94
+      }
+    },
+    "severity": {
+      "type": "score",
+      "score": 1.93,
+      "confidence": 0.89,
+      "legend": {
+        "0": "Fine as it is",
+        "1": "Needs edits before it can stay up",
+        "2": "Must be removed"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.07,
+        "2": 0.93
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 545,
+    "output_tokens": 99
+  },
+  "costUsd": 0.00002289,
+  "clientMs": 1122
+}

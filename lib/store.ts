@@ -1,7 +1,8 @@
 'use client'
 
+import { DEFAULT_LLM_MODEL, findLlmModel } from './llm-models'
 import { create } from 'zustand'
-import type { Answer, JevRequest, Question, QuestionType, RunError, RunResult, State } from './schema'
+import type { Answer, CompareQuota, JevRequest, Question, QuestionType, RunError, RunResult, State } from './schema'
 import { DEFAULT_MODEL, isEditorQuestionId } from './schema'
 import { editorRequestHash, moveKey, parseWireId, toWireRequest, uniqueId } from './serialize'
 import type { EditorRequest } from './serialize'
@@ -9,7 +10,7 @@ import { lintRequest, hasBlockingLint } from './lints'
 import type { Lint, LintFixKind } from './lints'
 import { applyPolicyPreset, defaultPolicy, reconcilePolicy, renameInPolicy, POLICY_PRESETS } from './policy'
 import type { Policy, Rule } from './policy'
-import { addToSession, saveRun } from './storage'
+import { addToSession, saveRun, saveSettings } from './storage'
 import type { CompareRecord, RunRecord } from './storage'
 
 /**
@@ -22,6 +23,47 @@ import type { CompareRecord, RunRecord } from './storage'
  */
 
 /** Where a recorded answer came from. Shown with every replay, never hidden. */
+
+/**
+ * Turn plain text into a JSON object for JSON mode. "Key: value" lines become
+ * fields (snake_case keys); lines that follow a key continue its value until a
+ * blank line; anything else is collected under "text". Text with no keys at
+ * all becomes { "text": … }. Nothing is dropped: every character of content
+ * lands in some field.
+ */
+/** The last Text→JSON conversion, so switching straight back restores the exact text. */
+let convertedFrom: { text: string; fields: Record<string, string> } | null = null
+
+export function textToFields(text: string): Record<string, string> {
+  const out: Record<string, string> = {}
+  const loose: string[] = []
+  let current: string | null = null
+  const keyOf = (label: string) => {
+    const base = label.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'field'
+    let key = base
+    for (let n = 2; Object.hasOwn(out, key); n++) key = `${base}_${n}`
+    return key
+  }
+  for (const line of text.split(/\r?\n/)) {
+    const m = /^([A-Za-z][A-Za-z0-9 _'().-]{0,39}):\s+(.*)$/.exec(line)
+    if (m && !/^https?$/i.test(m[1])) {
+      current = keyOf(m[1])
+      out[current] = m[2].trim()
+    } else if (!line.trim()) {
+      current = null
+      if (loose.length && loose[loose.length - 1] !== '') loose.push('')
+    } else if (current) {
+      out[current] = `${out[current]}\n${line.trim()}`.trim()
+    } else {
+      loose.push(line)
+    }
+  }
+  const rest = loose.join('\n').trim()
+  if (Object.keys(out).length === 0) return { text: rest }
+  if (rest) out[Object.hasOwn(out, 'text') ? keyOf('text') : 'text'] = rest
+  return out
+}
+
 export interface Provenance {
   source: string
   model: string
@@ -86,6 +128,10 @@ interface PlaygroundState {
   lastRun: LastRun | null
   error: RunError | null
   compareOn: boolean
+  /** The OpenAI model to compare against (one of LLM_MODELS). */
+  compareModel: string
+  /** This network's free comparisons today; null until fetched. */
+  compareQuota: CompareQuota | null
   tab: ResultTab
   selectedQuestion: string | null
   announcement: string
@@ -132,6 +178,8 @@ interface PlaygroundState {
   // run lifecycle
   run: (opts?: { compare?: boolean; feature?: string }) => Promise<void>
   setCompareOn: (on: boolean) => void
+  setCompareModel: (id: string) => void
+  fetchCompareQuota: () => Promise<void>
   setTab: (tab: ResultTab) => void
   selectQuestion: (id: string | null) => void
   dismissNotice: () => void
@@ -196,6 +244,8 @@ export const usePlayground = create<PlaygroundState>((set, get) => ({
   lastRun: null,
   error: null,
   compareOn: false,
+  compareModel: DEFAULT_LLM_MODEL,
+  compareQuota: null,
   tab: 'answers',
   selectedQuestion: null,
   announcement: '',
@@ -251,7 +301,16 @@ export const usePlayground = create<PlaygroundState>((set, get) => ({
         } catch {
           /* not JSON: keep the string, the editor captions why */
         }
-        return { stateMode: mode, stateError: null }
+        // Plain text becomes fields, so JSON mode shows real JSON, not text it cannot parse.
+        const fields = textToFields(s.state)
+        convertedFrom = { text: s.state, fields }
+        return { stateMode: mode, state: fields, stateError: null }
+      }
+      if (mode === 'text' && convertedFrom && s.state === convertedFrom.fields) {
+        // Untouched since the conversion: give the reader their own words back.
+        const text = convertedFrom.text
+        convertedFrom = null
+        return { stateMode: mode, state: text, stateError: null }
       }
       if (mode === 'text' && typeof s.state !== 'string') {
         return { stateMode: mode, state: JSON.stringify(s.state, null, 2), stateError: null }
@@ -436,6 +495,7 @@ export const usePlayground = create<PlaygroundState>((set, get) => ({
           feature: compare ? 'compare' : (opts.feature ?? 'play'),
           presetId: s.presetId ?? undefined,
           variantId: s.variantId ?? undefined,
+          ...(compare ? { llmModel: s.compareModel } : {}),
         }),
       })
       // A proxy timeout can answer with an HTML page; that is not a network error.
@@ -473,11 +533,14 @@ export const usePlayground = create<PlaygroundState>((set, get) => ({
         return
       }
 
+      // A refused comparison still reports the quota, so the counter stays true.
+      if (compare && error.quota) set({ compareQuota: error.quota })
       set({ running: false, error, announcement: `Run failed: ${error.message}` })
       return
     }
 
-    const result = body as RunResult & { compare?: CompareRecord }
+    const result = body as RunResult & { compare?: CompareRecord; quota?: CompareQuota }
+    if (result.quota) set({ compareQuota: result.quota })
     const clientMs = Math.round(performance.now() - startedAt)
 
     const lastRun: LastRun = {
@@ -535,6 +598,25 @@ export const usePlayground = create<PlaygroundState>((set, get) => ({
   },
 
   setCompareOn: (compareOn) => set({ compareOn }),
+  setCompareModel: (compareModel) => {
+    if (!findLlmModel(compareModel)) return
+    set({ compareModel })
+    try {
+      saveSettings({ compareModel })
+    } catch {
+      /* the choice lasts for this page only */
+    }
+  },
+  fetchCompareQuota: async () => {
+    try {
+      const res = await fetch('/api/compare/quota', { cache: 'no-store' })
+      if (!res.ok) return
+      const q = (await res.json()) as CompareQuota
+      if (typeof q.remaining === 'number') set({ compareQuota: q })
+    } catch {
+      /* offline: the counter just stays hidden */
+    }
+  },
   setTab: (tab) => set({ tab }),
   selectQuestion: (selectedQuestion) => set({ selectedQuestion }),
   dismissNotice: () => set({ notice: null }),

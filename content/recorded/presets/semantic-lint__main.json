@@ -1,0 +1,78 @@
+{
+  "preset": "semantic-lint",
+  "variant": "main",
+  "recordedAt": "2026-09-21T22:00:22.082Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "convention": "Every caught error must be logged with the request ID before it is handled or re-thrown.",
+      "code": "try {\n  await chargeCard(order)\n} catch (err) {\n  metrics.increment('charge_failed')\n  return res.status(502).json({ error: 'Payment failed' })\n}"
+    },
+    "model": "jev-latest",
+    "questions": {
+      "violates": {
+        "type": "noul",
+        "instructions": "Does the code break the stated convention?"
+      },
+      "fix": {
+        "type": "choice",
+        "instructions": "What change would bring the code in line with the convention?",
+        "criteria": {
+          "add_logging": "Log the error with the request ID",
+          "rethrow": "Re-throw the error to the caller",
+          "remove_catch": "Remove the try/catch entirely",
+          "none_needed": "The code already follows the convention",
+          "other": "Something else"
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "How much does the violation matter in production?",
+        "criteria": [
+          "A style nit",
+          "Makes debugging harder",
+          "Hides failures from the people on call"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "violates": {
+      "type": "noul",
+      "noul": 0.98
+    },
+    "fix": {
+      "type": "choice",
+      "choice": "add_logging",
+      "confidence": 1,
+      "probabilities": {
+        "other": 0,
+        "remove_catch": 0,
+        "none_needed": 0,
+        "rethrow": 0,
+        "add_logging": 1
+      }
+    },
+    "severity": {
+      "type": "score",
+      "score": 1.47,
+      "confidence": 0.29,
+      "legend": {
+        "0": "A style nit",
+        "1": "Makes debugging harder",
+        "2": "Hides failures from the people on call"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.53,
+        "2": 0.47
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 519,
+    "output_tokens": 89
+  },
+  "costUsd": 0.000021798,
+  "clientMs": 304
+}

@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 export default function ErrorBoundary({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <main id="main" className="mx-auto flex min-h-[70vh] max-w-[1100px] flex-col items-start justify-center px-4">
-      <h1 className="text-3xl font-semibold tracking-tight">Something broke on this page</h1>
+      <h1 className="text-4xl font-semibold tracking-[-0.03em]">Something broke on this page</h1>
       <p className="mt-3 max-w-[52ch] text-base text-muted-foreground">
         It is a problem with the page, not with anything you did. Try again; if it keeps happening,
         reloading the playground clears whatever state caused it.

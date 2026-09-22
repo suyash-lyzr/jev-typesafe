@@ -1,0 +1,84 @@
+{
+  "preset": "search-ranking",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:40:01.441Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "query": "best laptops for machine learning",
+      "result": {
+        "title": "Top 10 Gaming Laptops of 2026",
+        "snippet": "RTX 5080 laptops ranked by frame rates in Cyberpunk and Fortnite, with our favourite RGB keyboards and the best screens for esports."
+      }
+    },
+    "model": "jev-latest",
+    "questions": {
+      "relevance": {
+        "type": "score",
+        "instructions": "How relevant is `result` to `query`?",
+        "criteria": [
+          "Unrelated",
+          "Shares keywords but misses the need",
+          "Partly useful",
+          "Exactly what the searcher needs"
+        ]
+      },
+      "intent_match": {
+        "type": "noul",
+        "instructions": "Does `result` serve what the person searching `query` is trying to do?"
+      },
+      "page_type": {
+        "type": "choice",
+        "instructions": "What kind of page is `result`?",
+        "criteria": {
+          "buying_guide": "Compares products to help someone choose",
+          "review": "Tests one product in depth",
+          "tutorial": "Teaches how to do something",
+          "news": "Reports recent events",
+          "other": "Another kind of page"
+        }
+      }
+    }
+  },
+  "answers": {
+    "relevance": {
+      "type": "score",
+      "score": 1.05,
+      "confidence": 0.39,
+      "legend": {
+        "0": "Unrelated",
+        "1": "Shares keywords but misses the need",
+        "2": "Partly useful",
+        "3": "Exactly what the searcher needs"
+      },
+      "probabilities": {
+        "0": 0.28,
+        "1": 0.4,
+        "2": 0.32,
+        "3": 0
+      }
+    },
+    "intent_match": {
+      "type": "noul",
+      "noul": 0.15
+    },
+    "page_type": {
+      "type": "choice",
+      "choice": "buying_guide",
+      "confidence": 0.99,
+      "probabilities": {
+        "other": 0,
+        "review": 0,
+        "buying_guide": 1,
+        "news": 0,
+        "tutorial": 0
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 530,
+    "output_tokens": 91
+  },
+  "costUsd": 0.00002226,
+  "clientMs": 416
+}

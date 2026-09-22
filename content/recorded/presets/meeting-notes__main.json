@@ -1,0 +1,88 @@
+{
+  "preset": "meeting-notes",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:26:29.591Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "Launch sync, 22 Sept.\nMaya: Legal cleared the new terms, so we can ship on 6 October. Everyone OK with that? — Leo: Yes. — Sam: Yes.\nMaya: Great, 6 October it is. Leo, can you own the pricing page by the 1st?\nLeo: Sure.\nSam: Someone should update the help-centre articles too.\nMaya: Good point, let's figure that out later.",
+    "model": "jev-latest",
+    "questions": {
+      "meeting_type": {
+        "type": "choice",
+        "instructions": "What kind of meeting was this?",
+        "criteria": {
+          "planning": "Deciding what to do next and who does it",
+          "status": "Reporting progress on existing work",
+          "decision": "Choosing between options",
+          "brainstorm": "Generating ideas without choosing",
+          "one_on_one": "A manager and report catching up",
+          "other": "A meeting that fits none of these"
+        }
+      },
+      "decision_made": {
+        "type": "noul",
+        "instructions": "Did the meeting reach at least one explicit decision?"
+      },
+      "owners_clear": {
+        "type": "noul",
+        "instructions": "Does every action item have a named owner?"
+      },
+      "actionability": {
+        "type": "score",
+        "instructions": "How actionable is the outcome of this meeting?",
+        "criteria": [
+          "Nothing to act on",
+          "Vague next steps with no owners",
+          "Clear next steps for most items",
+          "Every next step has an owner and a deadline"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "meeting_type": {
+      "type": "choice",
+      "choice": "planning",
+      "confidence": 1,
+      "probabilities": {
+        "brainstorm": 0,
+        "decision": 0,
+        "other": 0,
+        "one_on_one": 0,
+        "status": 0,
+        "planning": 1
+      }
+    },
+    "decision_made": {
+      "type": "noul",
+      "noul": 0.99
+    },
+    "owners_clear": {
+      "type": "noul",
+      "noul": 0.1
+    },
+    "actionability": {
+      "type": "score",
+      "score": 1.87,
+      "confidence": 0.84,
+      "legend": {
+        "0": "Nothing to act on",
+        "1": "Vague next steps with no owners",
+        "2": "Clear next steps for most items",
+        "3": "Every next step has an owner and a deadline"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.15,
+        "2": 0.83,
+        "3": 0.02
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 587,
+    "output_tokens": 120
+  },
+  "costUsd": 0.000024654,
+  "clientMs": 299
+}

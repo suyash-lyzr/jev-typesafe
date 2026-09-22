@@ -14,30 +14,27 @@ export const metadata: Metadata = {
 export default function LimitsPage() {
   return (
     <PageShell>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Applies to jev-1.13</p>
-      <h1 className="mt-1 text-3xl font-semibold tracking-tight">Where Jev breaks</h1>
-      <p className="mt-3 max-w-[66ch] text-base leading-relaxed text-muted-foreground">
-        TypeSafe publishes nine known failure modes for jev-1.13. Four of them run live below, plus one
-        common Score mistake. Each has a check that reads the live answer and says whether the
-        failure showed up this time, and all but the invariants section sit next to the rewrite that
-        works; for the invariants the fix is structural, and the advice says what it is. The rest are
-        quoted at the end.
+      <p className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">Applies to jev-1.13</p>
+      <h1 className="mt-3 text-4xl font-semibold tracking-[-0.03em]">Where Jev breaks</h1>
+      <p className="mt-3 max-w-[60ch] text-[17px] leading-relaxed text-muted-foreground">
+        Four of TypeSafe&rsquo;s documented failure modes and one common Score mistake, each runnable beside the fix. A failure is a tendency, so any
+        single run can land either way.
       </p>
-      <p className="mt-2 max-w-[66ch] text-sm text-muted-foreground">
-        Nothing runs until you press a button. A failure mode is a tendency, not a certainty, so any
-        single run can land either way; the rewrite is what holds.{' '}
+      <p className="mt-2 text-sm text-faint">
+        Source:{' '}
         <a className="text-brand hover:underline" href={SITE.links.jaggedness} target="_blank" rel="noreferrer">
-          TypeSafe&rsquo;s jaggedness page, last reviewed 2026-09-17 ↗
-        </a>
+          TypeSafe&rsquo;s jaggedness page ↗
+        </a>{' '}
+        · reviewed 2026-09-17
       </p>
 
       <nav aria-label="On this page" className="mt-6 flex flex-wrap gap-2 text-sm">
         {LIMITS.map((l) => (
-          <a key={l.anchor} href={`#${l.anchor}`} className="rounded-md border border-border px-2.5 py-1 hover:bg-accent">
+          <a key={l.anchor} href={`#${l.anchor}`} className="rounded-full border border-border bg-card px-3 py-1 text-muted-foreground hover:text-foreground">
             {l.heading}
           </a>
         ))}
-        <a href="#the-rest" className="rounded-md border border-border px-2.5 py-1 hover:bg-accent">
+        <a href="#the-rest" className="rounded-full border border-border bg-card px-3 py-1 text-muted-foreground hover:text-foreground">
           The other five
         </a>
       </nav>
@@ -49,18 +46,21 @@ export default function LimitsPage() {
         <p className="mt-2 max-w-[66ch] text-sm text-muted-foreground">
           Not runnable here yet. Each is paraphrased from the jaggedness page with the advice it gives.
         </p>
-        <dl className="mt-5 space-y-5">
+        <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {QUOTED_MODES.map((m) => (
-            <div key={m.anchor} id={m.anchor} className="scroll-mt-24">
-              <dt className="text-[15px] font-semibold">
-                {m.mode}. {m.heading}
-              </dt>
-              <dd className="mt-1 max-w-[70ch] text-sm leading-relaxed text-muted-foreground">
-                {m.docs} <span className="text-foreground">Instead:</span> {m.instead}
-              </dd>
-            </div>
+            <article key={m.anchor} id={m.anchor} className="flex scroll-mt-24 flex-col rounded-[16px] border border-border bg-card p-5 shadow-card">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted font-mono text-[11px]">{m.mode}</span>
+                <h3 className="text-[14.5px] font-semibold">{m.heading}</h3>
+              </div>
+              <p className="mt-2 flex-1 text-[13px] leading-relaxed text-muted-foreground">{m.docs}</p>
+              <p className="mt-3 rounded-[10px] bg-muted/60 px-3 py-2 text-[12.5px] leading-snug">
+                <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-faint">Instead · </span>
+                {m.instead}
+              </p>
+            </article>
           ))}
-        </dl>
+        </div>
         <p className="mt-6 text-sm">
           <Link className="text-brand hover:underline" href="/learn/exact-checks">
             Lesson 6 walks through the counting rewrite step by step →

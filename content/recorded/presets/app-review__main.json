@@ -1,0 +1,83 @@
+{
+  "preset": "app-review",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:26:31.162Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "★★☆☆☆ \"Used to love it\"\nSince the 4.2 update the app logs me out every time I switch to another app, so I lose whatever I was typing. I paid for the yearly plan two weeks ago. If this isn't fixed by next week I want a refund.",
+    "model": "jev-latest",
+    "questions": {
+      "topic": {
+        "type": "choice",
+        "instructions": "What is this review mainly about?",
+        "criteria": {
+          "bug": "Something is broken or crashing",
+          "pricing": "Price, billing or subscriptions",
+          "feature_request": "Asks for something the app does not do",
+          "praise": "Positive feedback with no problem raised",
+          "account": "Login, data or account access",
+          "other": "Something that fits none of these"
+        }
+      },
+      "wants_refund": {
+        "type": "noul",
+        "instructions": "Is the reviewer asking for their money back?"
+      },
+      "sentiment": {
+        "type": "score",
+        "instructions": "How does the reviewer feel about the app overall?",
+        "criteria": [
+          "Angry, ready to leave",
+          "Disappointed",
+          "Mixed",
+          "Satisfied",
+          "Delighted"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "topic": {
+      "type": "choice",
+      "choice": "bug",
+      "confidence": 0.53,
+      "probabilities": {
+        "feature_request": 0,
+        "praise": 0,
+        "bug": 0.61,
+        "account": 0.39,
+        "other": 0,
+        "pricing": 0
+      }
+    },
+    "wants_refund": {
+      "type": "noul",
+      "noul": 0.92
+    },
+    "sentiment": {
+      "type": "score",
+      "score": 0.09,
+      "confidence": 0.93,
+      "legend": {
+        "0": "Angry, ready to leave",
+        "1": "Disappointed",
+        "2": "Mixed",
+        "3": "Satisfied",
+        "4": "Delighted"
+      },
+      "probabilities": {
+        "0": 0.91,
+        "1": 0.09,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 531,
+    "output_tokens": 95
+  },
+  "costUsd": 0.000022302000000000004,
+  "clientMs": 467
+}

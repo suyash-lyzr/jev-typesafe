@@ -1,19 +1,27 @@
-import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
+import { DM_Sans, Space_Grotesk, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { SITE } from '@/lib/site'
+import { THEME_SCRIPT } from '@/lib/theme'
 import './globals.css'
 
 /**
  * Self-hosted by next/font: the files are downloaded at build time and served
  * from this origin, so no visitor's browser ever asks Google for them. The
- * hashed family names are aliased into Sage's --font-sans / --font-mono in
- * globals.css, after sage.css, so the design system's literal names still win.
+ * hashed family names are aliased into the --font-* tokens in globals.css.
+ * Quiet Signal: DM Sans for reading, Space Grotesk for headings and numbers.
  */
-const jakarta = Plus_Jakarta_Sans({
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-jakarta',
+  weight: ['400', '500', '600'],
+  variable: '--font-dm-sans',
+  display: 'swap',
+})
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['500', '600'],
+  variable: '--font-space-grotesk',
   display: 'swap',
 })
 
@@ -23,6 +31,13 @@ const jetbrains = JetBrains_Mono({
   variable: '--font-jetbrains',
   display: 'swap',
 })
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#fafbfc' },
+    { media: '(prefers-color-scheme: dark)', color: '#0c0f15' },
+  ],
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -42,9 +57,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       data-theme="sage"
-      className={`${jakarta.variable} ${jetbrains.variable}`}
+      className={`${dmSans.variable} ${spaceGrotesk.variable} ${jetbrains.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {/* Before first paint: pick light or dark so nothing flashes. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-screen bg-background text-foreground">
         <a
           href="#main"

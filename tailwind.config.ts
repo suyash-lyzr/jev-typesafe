@@ -15,6 +15,23 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        display: ['var(--font-display)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
+      colors: {
+        faint: 'hsl(var(--faint))',
+        fill: 'hsl(var(--fill))',
+        panel: 'hsl(var(--panel))',
+        sidebar: 'hsl(var(--sidebar))',
+        results: 'hsl(var(--results))',
+        pastel: {
+          1: 'hsl(var(--pastel-1))',
+          2: 'hsl(var(--pastel-2))',
+          3: 'hsl(var(--pastel-3))',
+          4: 'hsl(var(--pastel-4))',
+          5: 'hsl(var(--pastel-5))',
+        },
+      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
@@ -31,6 +48,7 @@ export default {
       },
       transitionTimingFunction: {
         sage: 'cubic-bezier(.19,1,.22,1)',
+        signal: 'cubic-bezier(.2,.8,.2,1)',
       },
       transitionDuration: {
         fast: '120ms',

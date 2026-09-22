@@ -1,0 +1,81 @@
+{
+  "preset": "paper-screening",
+  "variant": "main",
+  "recordedAt": "2026-09-21T22:00:21.374Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "review_question": "Does intermittent fasting lower HbA1c in adults with type 2 diabetes?",
+      "inclusion": "Randomised trials; adults with type 2 diabetes; intermittent fasting; HbA1c reported; at least 12 weeks of follow-up.",
+      "exclusion": "Animal studies; type 1 diabetes; follow-up under 12 weeks.",
+      "abstract": "We randomised 64 adults with type 2 diabetes to 5:2 intermittent fasting or continuous energy restriction for 8 weeks. The primary outcome was weight change; HbA1c, a secondary outcome, fell by 0.4% in both arms."
+    },
+    "model": "jev-latest",
+    "questions": {
+      "decision": {
+        "type": "choice",
+        "instructions": "Should this paper be included in the review?",
+        "criteria": {
+          "include": "Meets every inclusion criterion and no exclusion criterion",
+          "exclude": "Fails an inclusion criterion or meets an exclusion criterion",
+          "full_text": "The abstract is not enough to decide",
+          "unclear": "Cannot tell from what is given"
+        }
+      },
+      "long_enough": {
+        "type": "noul",
+        "instructions": "Does the study follow participants for at least 12 weeks?"
+      },
+      "relevance": {
+        "type": "score",
+        "instructions": "How relevant is the paper to the review question?",
+        "criteria": [
+          "Unrelated",
+          "Same topic, different question",
+          "Close, with some gaps",
+          "Answers the review question directly"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "decision": {
+      "type": "choice",
+      "choice": "exclude",
+      "confidence": 0.99,
+      "probabilities": {
+        "include": 0.01,
+        "unclear": 0,
+        "exclude": 0.99,
+        "full_text": 0
+      }
+    },
+    "long_enough": {
+      "type": "noul",
+      "noul": 0.02
+    },
+    "relevance": {
+      "type": "score",
+      "score": 2.06,
+      "confidence": 0.93,
+      "legend": {
+        "0": "Unrelated",
+        "1": "Same topic, different question",
+        "2": "Close, with some gaps",
+        "3": "Answers the review question directly"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.01,
+        "2": 0.93,
+        "3": 0.06
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 595,
+    "output_tokens": 81
+  },
+  "costUsd": 0.000024990000000000003,
+  "clientMs": 895
+}

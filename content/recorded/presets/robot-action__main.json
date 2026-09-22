@@ -1,0 +1,82 @@
+{
+  "preset": "robot-action",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:40:04.344Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "robot": "Warehouse picker AMR-7",
+      "task": "Pick tote #4412 from shelf B3 and bring it to packing station 2",
+      "front_lidar_m": 0.6,
+      "camera": "Person crouching, partly in the aisle",
+      "position": "Aisle B, 2 m from shelf B3",
+      "battery": "31%"
+    },
+    "model": "jev-latest",
+    "questions": {
+      "next_action": {
+        "type": "choice",
+        "instructions": "What should the robot do next?",
+        "criteria": {
+          "move_forward": "Continue along the aisle",
+          "stop": "Stop where it is",
+          "reroute": "Take another aisle",
+          "pick": "Pick the item",
+          "other": "Something else"
+        }
+      },
+      "person_at_risk": {
+        "type": "noul",
+        "instructions": "Is a person close enough to be at risk if the robot moves?"
+      },
+      "caution": {
+        "type": "score",
+        "instructions": "How cautious should the robot be right now?",
+        "criteria": [
+          "Proceed normally",
+          "Slow down and monitor",
+          "Halt immediately"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "next_action": {
+      "type": "choice",
+      "choice": "stop",
+      "confidence": 0.85,
+      "probabilities": {
+        "other": 0.04,
+        "pick": 0.02,
+        "stop": 0.88,
+        "move_forward": 0,
+        "reroute": 0.06
+      }
+    },
+    "person_at_risk": {
+      "type": "noul",
+      "noul": 0.8
+    },
+    "caution": {
+      "type": "score",
+      "score": 1.71,
+      "confidence": 0.57,
+      "legend": {
+        "0": "Proceed normally",
+        "1": "Slow down and monitor",
+        "2": "Halt immediately"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.28,
+        "2": 0.72
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 516,
+    "output_tokens": 90
+  },
+  "costUsd": 0.000021672000000000002,
+  "clientMs": 348
+}

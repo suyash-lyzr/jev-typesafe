@@ -72,7 +72,7 @@ export const LIMITS: LimitSpec[] = [
     preset: 'limit-dates',
     anchor: 'dates',
     mode: 3,
-    heading: 'Date arithmetic',
+    heading: 'Date and time comparison',
     docs: 'jev-1.13 reads dates as text, not as ordered quantities. Which came first, how far apart, inside a window — all unreliable, and worse with mixed formats.',
     source: 'docs.typesafe.ai/model-jaggedness/jev-1.13#date-and-time-comparison',
     advice: 'Extract the parts with Choice questions — each part is a small closed set with a "none" option — then compare and subtract in code.',
@@ -128,7 +128,7 @@ export const LIMITS: LimitSpec[] = [
     heading: 'Adversarial content',
     docs: 'State is data, and jev-1.13 does not treat it as hostile by default. An injected instruction, a misleading framing, or text that argues for its own classification can move the answer.',
     source: 'docs.typesafe.ai/model-jaggedness/jev-1.13#adversarial-content',
-    advice: 'Be explicit in the criteria, ask a separate question about whether the text addresses the classifier, and test edge cases before deploying.',
+    advice: 'Be explicit in the criteria and test edge cases before deploying (the docs). Our addition: a separate question about whether the text addresses the classifier.',
     check: {
       breaks: (a) => {
         const d = a.department

@@ -3,7 +3,6 @@
 import * as React from 'react'
 import * as SliderPrimitive from '@radix-ui/react-slider'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { CopyAction } from './copy-action'
 import { usePlayground } from '@/lib/store'
@@ -34,15 +33,16 @@ function ThresholdSlider({
   label: string
   describe: (v: number) => string
 }) {
+  // Two grid cells: the slider stretches, the value sits in a fixed column.
   return (
-    <div className="flex items-center gap-2">
+    <>
       <SliderPrimitive.Root
         value={[value]}
         onValueChange={([v]) => onChange(v)}
         min={0}
         max={1}
         step={0.05}
-        className="relative flex h-5 w-28 touch-none select-none items-center"
+        className="relative flex h-5 w-full touch-none select-none items-center"
       >
         <SliderPrimitive.Track className="relative h-1 w-full grow overflow-hidden rounded-full bg-muted">
           <SliderPrimitive.Range className="absolute h-full bg-primary" />
@@ -50,7 +50,7 @@ function ThresholdSlider({
         <SliderPrimitive.Thumb
           aria-label={label}
           aria-valuetext={describe(value)}
-          className="block h-4 w-4 rounded-full border border-border bg-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="block h-4 w-4 rounded-full border-2 border-card bg-primary shadow-[0_0_0_1px_hsl(var(--border))] transition-transform duration-fast hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         />
       </SliderPrimitive.Root>
       <input
@@ -64,106 +64,96 @@ function ThresholdSlider({
           const v = Number(e.target.value)
           if (Number.isFinite(v)) onChange(Math.min(1, Math.max(0, v)))
         }}
-        className="h-7 w-16 rounded-md border border-input bg-transparent px-1.5 text-right font-mono text-xs tabular"
+        className="h-7 w-full rounded-md border border-transparent bg-muted/70 px-1.5 text-center font-mono text-xs tabular outline-none transition-colors hover:border-input focus:border-input focus:bg-card [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
       />
+    </>
+  )
+}
+
+/** One rule: a name line, then aligned rows of label · slider · value. */
+function RuleBlock({ name, hint, children }: { name: string; hint: string; children?: React.ReactNode }) {
+  return (
+    <div className="py-3.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="min-w-0 truncate font-mono text-[13px] font-medium text-foreground" title={name}>
+          {name}
+        </span>
+        <span className="shrink-0 text-[11.5px] text-faint">{hint}</span>
+      </div>
+      {children && <div className="mt-2.5 grid grid-cols-[92px_minmax(0,1fr)_56px] items-center gap-x-3 gap-y-2">{children}</div>}
     </div>
   )
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return <span className="text-[12.5px] text-muted-foreground">{children}</span>
 }
 
 function RuleRow({ rule, index }: { rule: Rule; index: number }) {
   const { updateRule } = usePlayground()
   const set = (patch: Partial<Rule>) => updateRule(index, patch)
-  const row = 'flex flex-wrap items-center gap-4 py-2'
-  const name = <span className="w-44 shrink-0 truncate font-mono text-xs" title={rule.q}>{rule.q}</span>
-  const field = 'flex items-center gap-2 text-xs text-muted-foreground'
 
   if (rule.kind === 'band') {
     return (
-      <div className={row}>
-        {name}
-        <label className={field}>
-          act ≥
-          <ThresholdSlider
-            value={rule.act}
-            label={`Act on ${rule.q} at confidence`}
-            describe={(v) => `act at or above ${v.toFixed(2)}`}
-            onChange={(act) => set({ act } as Partial<Rule>)}
-          />
-        </label>
-        <label className={field}>
-          review ≥
-          <ThresholdSlider
-            value={rule.review}
-            label={`Review ${rule.q} at confidence`}
-            describe={(v) => `review at or above ${v.toFixed(2)}; below it goes to a person`}
-            onChange={(review) => set({ review } as Partial<Rule>)}
-          />
-        </label>
-      </div>
+      <RuleBlock name={rule.q} hint="By confidence · below review, a person decides">
+        <Label>Act from</Label>
+        <ThresholdSlider
+          value={rule.act}
+          label={`Act on ${rule.q} at confidence`}
+          describe={(v) => `act at or above ${v.toFixed(2)}`}
+          onChange={(act) => set({ act } as Partial<Rule>)}
+        />
+        <Label>Review from</Label>
+        <ThresholdSlider
+          value={rule.review}
+          label={`Review ${rule.q} at confidence`}
+          describe={(v) => `review at or above ${v.toFixed(2)}; below it goes to a person`}
+          onChange={(review) => set({ review } as Partial<Rule>)}
+        />
+      </RuleBlock>
     )
   }
 
   if (rule.kind === 'noul') {
     return (
-      <div className={row}>
-        {name}
-        <label className={field}>
-          yes ≥
-          <ThresholdSlider
-            value={rule.yes}
-            label={`Treat ${rule.q} as yes from`}
-            describe={(v) => `yes at or above ${v.toFixed(2)}`}
-            onChange={(yes) => set({ yes } as Partial<Rule>)}
-          />
-        </label>
-        <label className={field}>
-          no &lt;
-          <ThresholdSlider
-            value={rule.no}
-            label={`Treat ${rule.q} as no below`}
-            describe={(v) => `no below ${v.toFixed(2)}`}
-            onChange={(no) => set({ no } as Partial<Rule>)}
-          />
-        </label>
-      </div>
+      <RuleBlock name={rule.q} hint="By probability · in between is unsure">
+        <Label>Yes from</Label>
+        <ThresholdSlider
+          value={rule.yes}
+          label={`Treat ${rule.q} as yes from`}
+          describe={(v) => `yes at or above ${v.toFixed(2)}`}
+          onChange={(yes) => set({ yes } as Partial<Rule>)}
+        />
+        <Label>No below</Label>
+        <ThresholdSlider
+          value={rule.no}
+          label={`Treat ${rule.q} as no below`}
+          describe={(v) => `no below ${v.toFixed(2)}`}
+          onChange={(no) => set({ no } as Partial<Rule>)}
+        />
+      </RuleBlock>
     )
   }
 
   if (rule.kind === 'copy_if_p_gt') {
     return (
-      <div className={row}>
-        {name}
-        <label className={field}>
-          also notify a runner-up above
-          <ThresholdSlider
-            value={rule.threshold}
-            label={`Notify a runner-up for ${rule.q} above`}
-            describe={(v) => `notify any other option above ${v.toFixed(2)}`}
-            onChange={(threshold) => set({ threshold } as Partial<Rule>)}
-          />
-        </label>
-      </div>
+      <RuleBlock name={rule.q} hint="Also notify a runner-up">
+        <Label>Above</Label>
+        <ThresholdSlider
+          value={rule.threshold}
+          label={`Notify a runner-up for ${rule.q} above`}
+          describe={(v) => `notify any other option above ${v.toFixed(2)}`}
+          onChange={(threshold) => set({ threshold } as Partial<Rule>)}
+        />
+      </RuleBlock>
     )
   }
 
   if (rule.kind === 'flag_if_score_gte') {
-    return (
-      <div className={row}>
-        {name}
-        <span className="text-xs text-muted-foreground">
-          {rule.label} when the score is at least{' '}
-          <span className="font-mono tabular text-foreground">{rule.threshold}</span>
-        </span>
-      </div>
-    )
+    return <RuleBlock name={rule.q} hint={`${rule.label} when the score is at least ${rule.threshold}`} />
   }
 
-  return (
-    <div className={cn(row, 'text-xs text-muted-foreground')}>
-      {name}
-      read only when {rule.dependsOn} is {rule.equals.join(' or ')}
-    </div>
-  )
+  return <RuleBlock name={rule.q} hint={`Read only when ${rule.dependsOn} is ${rule.equals.join(' or ')}`} />
 }
 
 export function PolicyTab() {
@@ -182,18 +172,18 @@ export function PolicyTab() {
 
   return (
     <div className="p-4" onPointerDown={() => setMoved(true)} onKeyDown={() => setMoved(true)}>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <p className="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground">
           Policy runs in your code. Moving a slider re-evaluates the cached answers; it never calls
           the model.
         </p>
-        <Chip variant="default" aria-live="polite">
+        <Chip variant="default" aria-live="polite" className="shrink-0">
           0 API calls{moved ? ' · still' : ''}
         </Chip>
       </div>
 
       {policy.rules.length > 0 ? (
-        <div className="divide-y divide-border rounded-lg border border-border bg-card px-4">
+        <div className="divide-y divide-border rounded-[16px] border border-border bg-card px-5 shadow-card">
           {policy.rules.map((rule, index) => (
             <RuleRow key={`${index}-${rule.q}-${rule.kind}`} rule={rule} index={index} />
           ))}
@@ -202,13 +192,20 @@ export function PolicyTab() {
         <p className="text-sm text-muted-foreground">No rules yet — add a question and one appears.</p>
       )}
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <p className="mt-4 text-[10.5px] font-medium uppercase tracking-[0.1em] text-faint">Start from a preset</p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
         {(Object.keys(POLICY_PRESETS) as Array<keyof typeof POLICY_PRESETS>).map((key) => {
           const preset = POLICY_PRESETS[key]
           return (
-            <Button key={key} variant="outline" size="sm" title={`${preset.note} (${preset.source})`} onClick={() => applyPreset(key)}>
+            <button
+              key={key}
+              type="button"
+              title={`${preset.note} (${preset.source})`}
+              onClick={() => applyPreset(key)}
+              className="h-8 rounded-full border border-border bg-card px-3 text-[12.5px] text-muted-foreground transition-colors duration-fast hover:border-faint hover:text-foreground"
+            >
               {preset.label}
-            </Button>
+            </button>
           )
         })}
       </div>
@@ -217,7 +214,7 @@ export function PolicyTab() {
         are kept.
       </p>
 
-      <section className="mt-5 rounded-lg border border-border bg-card p-4">
+      <section className="mt-5 rounded-[16px] border border-border bg-card p-5 shadow-card">
         <h3 className="text-[13px] font-medium uppercase tracking-wide text-muted-foreground">Decision</h3>
         <ul className="mt-2 space-y-1" aria-live="polite">
           {outcome.lines.map((line, i) => (

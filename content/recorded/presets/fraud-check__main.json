@@ -1,0 +1,85 @@
+{
+  "preset": "fraud-check",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:39:59.912Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "amount": "USD 2,480.00",
+      "merchant": "ElectroHub Online (electronics)",
+      "account_age_days": 3,
+      "previous_purchases": "Two, both under USD 30",
+      "card_country": "US",
+      "ip_country": "RO",
+      "device": "New device, first seen 4 minutes ago",
+      "local_time": "03:12",
+      "shipping_address": "Differs from billing address"
+    },
+    "model": "jev-latest",
+    "questions": {
+      "suspicious": {
+        "type": "noul",
+        "instructions": "Is this transaction suspicious?"
+      },
+      "risk": {
+        "type": "score",
+        "instructions": "How risky is approving this transaction?",
+        "criteria": [
+          "Normal for this customer",
+          "Unusual; a quick verification is worth it",
+          "Strong signs of fraud or account takeover"
+        ]
+      },
+      "pattern": {
+        "type": "choice",
+        "instructions": "Which fraud pattern does this most resemble?",
+        "criteria": {
+          "card_testing": "Small probing charges to check a stolen card works",
+          "account_takeover": "Someone else has taken over a real customer's account",
+          "stolen_card": "A stolen card used for a large purchase",
+          "friendly_fraud": "The real cardholder buys, then disputes the charge",
+          "none": "Looks like a legitimate purchase"
+        }
+      }
+    }
+  },
+  "answers": {
+    "suspicious": {
+      "type": "noul",
+      "noul": 0.95
+    },
+    "risk": {
+      "type": "score",
+      "score": 2,
+      "confidence": 1,
+      "legend": {
+        "0": "Normal for this customer",
+        "1": "Unusual; a quick verification is worth it",
+        "2": "Strong signs of fraud or account takeover"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 1
+      }
+    },
+    "pattern": {
+      "type": "choice",
+      "choice": "stolen_card",
+      "confidence": 0.97,
+      "probabilities": {
+        "none": 0,
+        "friendly_fraud": 0,
+        "card_testing": 0.02,
+        "stolen_card": 0.97,
+        "account_takeover": 0.01
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 576,
+    "output_tokens": 93
+  },
+  "costUsd": 0.000024192,
+  "clientMs": 287
+}

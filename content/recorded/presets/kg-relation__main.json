@@ -1,0 +1,79 @@
+{
+  "preset": "kg-relation",
+  "variant": "main",
+  "recordedAt": "2026-09-21T22:00:27.109Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "entity_a": "Orion Biotech",
+      "entity_b": "Helix Therapeutics",
+      "passage": "Helix Therapeutics, which Orion Biotech acquired in 2024, reported positive phase II results for its lead compound."
+    },
+    "model": "jev-latest",
+    "questions": {
+      "relation": {
+        "type": "choice",
+        "instructions": "According to `passage`, how is `entity_a` related to `entity_b`?",
+        "criteria": {
+          "a_acquired_b": "`entity_a` bought `entity_b`",
+          "b_acquired_a": "`entity_b` bought `entity_a`",
+          "partners": "The two work together",
+          "competitors": "The two compete",
+          "none": "The passage states no relationship"
+        }
+      },
+      "stated": {
+        "type": "noul",
+        "instructions": "Does `passage` state the relationship outright?"
+      },
+      "evidence": {
+        "type": "score",
+        "instructions": "How strong is the evidence in `passage` for the relationship?",
+        "criteria": [
+          "None",
+          "Implied",
+          "Stated explicitly"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "relation": {
+      "type": "choice",
+      "choice": "a_acquired_b",
+      "confidence": 1,
+      "probabilities": {
+        "b_acquired_a": 0,
+        "partners": 0,
+        "competitors": 0,
+        "a_acquired_b": 1,
+        "none": 0
+      }
+    },
+    "stated": {
+      "type": "noul",
+      "noul": 0.96
+    },
+    "evidence": {
+      "type": "score",
+      "score": 2,
+      "confidence": 0.99,
+      "legend": {
+        "0": "None",
+        "1": "Implied",
+        "2": "Stated explicitly"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 1
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 517,
+    "output_tokens": 96
+  },
+  "costUsd": 0.000021714000000000003,
+  "clientMs": 290
+}

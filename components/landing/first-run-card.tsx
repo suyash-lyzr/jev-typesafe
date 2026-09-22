@@ -2,148 +2,194 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { RefreshCw } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Chip } from '@/components/ui/chip'
-import { AnswerView } from '@/components/playground/answer-views'
-import { ConfidenceChip } from '@/components/playground/answer-views'
-import { firstRun } from '@/content/presets/first-run'
+import { AnswerRow, DecidingLoader } from '@/components/playground/answer-row'
+import { TypeBadge } from '@/components/playground/type-badge'
+import { getPreset, getVariant, USE_CASE_SLUGS } from '@/content/presets'
 import { formatUsd } from '@/lib/pricing'
 import type { Answer, RunError } from '@/lib/schema'
 import { errorCardCopy } from '@/lib/errors'
-import { InlineBanner } from '@/components/ui/inline-banner'
 import { runOnce } from '@/lib/run-once'
 
 /**
- * The landing card.
+ * The landing console.
  *
- * It opens on a recorded answer so the page is useful before anyone spends
- * anything, and says so. One click replaces it with a live run — and because
- * the live numbers differ slightly from the recorded ones, the swap teaches
- * the point of the whole site before the reader has read a word about it.
+ * It opens on a use case's recorded answer, labelled as a replay, so the page
+ * is useful before anyone spends anything. The state types itself and the
+ * rows land — that is the whole pitch, animated once. "Another example" types
+ * out the next use case; "Run it live" asks the model for real, with a real
+ * elapsed-time loader, and the label flips.
  */
 
-const variant = firstRun.variants[0]
-const recorded = variant.recorded!
+/** A spread of jobs to cycle through, one from each corner of the catalogue. */
+const SHOWCASE = ['support-ticket', 'tool-call-gate', 'fraud-check', 'phishing-check', 'agent-next-step', 'search-ranking'].filter(
+  (s) => USE_CASE_SLUGS.includes(s)
+)
+
+function stateText(state: unknown): string {
+  if (typeof state === 'string') return state
+  return JSON.stringify(state, null, 2)
+}
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = React.useState(false)
+  React.useEffect(() => {
+    setReduced(window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  }, [])
+  return reduced
+}
 
 export function FirstRunCard() {
-  const [answers, setAnswers] = React.useState<Record<string, Answer>>(recorded.answers)
+  const reduced = usePrefersReducedMotion()
+  const [index, setIndex] = React.useState(0)
+  const preset = getPreset(SHOWCASE[index])!
+  const variant = getVariant(preset)
+  const questions = variant.questions ?? preset.questions
+  const recorded = variant.recorded ?? null
+  const text = stateText(variant.state)
+
+  const [typed, setTyped] = React.useState(0)
+  const [revealed, setRevealed] = React.useState(false)
   const [live, setLive] = React.useState<{
+    slug: string
+    answers: Record<string, Answer>
     model: string
     jevMs: number
-    inputTokens: number
-    outputTokens: number
+    tokens: number
     costUsd: number
   } | null>(null)
   const [running, setRunning] = React.useState(false)
   const [error, setError] = React.useState<RunError | null>(null)
 
+  // Type the state, then reveal the recorded answers. Replays on each new example.
+  React.useEffect(() => {
+    setRevealed(false)
+    if (reduced) {
+      setTyped(text.length)
+      setRevealed(true)
+      return
+    }
+    setTyped(0)
+    let i = 0
+    const t = setInterval(() => {
+      i += 3
+      setTyped(Math.min(i, text.length))
+      if (i >= text.length) {
+        clearInterval(t)
+        setTimeout(() => setRevealed(true), 250)
+      }
+    }, 16)
+    return () => clearInterval(t)
+  }, [reduced, text])
+
   async function runLive() {
     setRunning(true)
+    setRevealed(false)
     setError(null)
     const out = await runOnce(
-      { state: variant.state, model: 'jev-latest', questions: firstRun.questions },
-      { feature: 'landing', presetId: firstRun.slug, variantId: variant.id }
+      { state: variant.state, model: 'jev-latest', questions },
+      { feature: 'landing', presetId: preset.slug, variantId: variant.id }
     )
     setRunning(false)
     if (!out.ok) {
       setError(out.error)
+      setRevealed(true)
       return
     }
-    setAnswers(out.result.answers)
     setLive({
+      slug: preset.slug,
+      answers: out.result.answers,
       model: out.result.model,
       jevMs: out.result.timing.jevMs,
-      inputTokens: out.result.usage.input_tokens,
-      outputTokens: out.result.usage.output_tokens,
+      tokens: out.result.usage.input_tokens,
       costUsd: out.result.costUsd,
     })
+    setRevealed(true)
   }
 
+  const liveHere = live?.slug === preset.slug ? live : null
+  const answers = liveHere?.answers ?? recorded?.answers ?? {}
+  const typing = typed < text.length
+
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          First run
-        </h2>
-        {live ? (
-          <Chip variant="default">live</Chip>
-        ) : (
-          <Chip variant="default" title={`Quoted from ${recorded.source}, ${recorded.model}. Not computed now.`}>
-            replay · from the docs
-          </Chip>
+    <div className="overflow-hidden rounded-[18px] border border-border bg-card shadow-float">
+      <div className="flex items-center gap-2.5 border-b border-border px-4 py-3 text-[12.5px] text-muted-foreground">
+        <span className={cn('h-[7px] w-[7px] rounded-full', liveHere ? 'bg-success' : 'bg-faint')} aria-hidden />
+        <span className="font-medium text-foreground">{preset.title}</span>
+        <span className="font-mono text-faint">· {liveHere?.model ?? recorded?.model ?? 'jev-1.13.0'}</span>
+        <span
+          className={cn(
+            'ml-auto rounded-full px-2 py-0.5 font-mono text-[11px]',
+            liveHere ? 'bg-success-soft text-success-text' : 'bg-brand-soft text-brand-text'
+          )}
+          title={liveHere ? 'Answered just now' : 'A real answer Jev Lab recorded earlier — not computed now'}
+        >
+          {liveHere ? 'live' : 'replay'}
+        </span>
+      </div>
+
+      <div className="min-h-[92px] border-b border-dashed border-border px-5 py-4">
+        <p className="mb-1.5 font-mono text-[11px] tracking-[0.04em] text-faint">STATE</p>
+        <p className="max-h-[132px] overflow-hidden whitespace-pre-wrap text-[14px] leading-relaxed">
+          {text.slice(0, typed)}
+          {typing && <span className="ml-px inline-block h-[1.05em] w-0.5 translate-y-[3px] animate-pulse bg-fill" aria-hidden />}
+          <span className="sr-only">{text}</span>
+        </p>
+      </div>
+
+      <div className="relative grid gap-2 p-2.5">
+        {running && (
+          <div className="absolute inset-x-0 top-0 z-10 flex h-full items-start bg-card/70 px-3 pt-4 backdrop-blur-[1px]">
+            <DecidingLoader />
+          </div>
+        )}
+        {Object.entries(questions).map(([id, q], i) =>
+          answers[id] ? (
+            <AnswerRow key={`${preset.slug}-${id}`} id={id} answer={answers[id]} visible={revealed} delayMs={i * 140} />
+          ) : (
+            <div key={id} className="flex items-center gap-2 rounded-xl border border-dashed border-border px-3.5 py-3 text-xs text-faint">
+              <TypeBadge type={q.type} /> {id}
+            </div>
+          )
         )}
       </div>
 
-      <div className="mt-3">
-        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">State</p>
-        <p className="mt-1 text-sm leading-relaxed">{String(variant.state)}</p>
-      </div>
-
-      <div className="mt-4">
-        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-          Questions
-        </p>
-        <ul className="mt-1 space-y-1">
-          {Object.entries(firstRun.questions).map(([id, q]) => (
-            <li key={id} className="flex items-baseline gap-2 text-xs">
-              <Chip variant="outline">{q.type.toUpperCase()}</Chip>
-              <span className="font-mono">{id}</span>
-              <span className="truncate text-muted-foreground">{String(q.instructions)}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mt-4 space-y-3 border-t border-border pt-4">
-        {Object.entries(answers).map(([id, answer]) => (
-          <div key={id}>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-medium">{id}</span>
-              <Chip variant="outline">{answer.type.toUpperCase()}</Chip>
-              {answer.type !== 'noul' && <ConfidenceChip confidence={answer.confidence} />}
-            </div>
-            <div className="mt-1.5">
-              <AnswerView answer={answer} showGuide={false} />
-            </div>
-          </div>
-        ))}
-      </div>
-
       {error && (
-        <InlineBanner variant="warning" className="mt-3">
+        <p className="mx-4 mb-3 rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning-text" role="alert">
           {errorCardCopy(error).body}
-        </InlineBanner>
-      )}
-
-      <p className="mt-4 border-t border-border pt-3 font-mono text-[11px] tabular text-muted-foreground">
-        {live
-          ? `${live.model} · ${live.jevMs} ms · ${live.inputTokens} in / ${live.outputTokens} out · ${formatUsd(live.costUsd)}`
-          : `${recorded.model} · ${recorded.usage?.input_tokens} in / ${recorded.usage?.output_tokens} out · as printed in the docs`}
-      </p>
-      {!live && (
-        <p className="mt-1 text-[11px] text-muted-foreground">
-          Quoted from{' '}
-          <a className="text-brand hover:underline" href={`https://${recorded.source}`} target="_blank" rel="noreferrer">
-            {recorded.source}
-          </a>
-          , read {recorded.date}. Press Run to ask the model now.
         </p>
       )}
 
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Button size="sm" onClick={runLive} disabled={running}>
-          {running ? 'Running…' : live ? 'Run it again' : 'Run it live'}
-        </Button>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/play?p=first-run">Edit in the playground →</Link>
-        </Button>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border px-4 py-3">
+        <p className="font-mono text-xs tabular text-muted-foreground">
+          {liveHere
+            ? `${liveHere.jevMs} ms · ${liveHere.tokens} tokens · ${formatUsd(liveHere.costUsd)}`
+            : recorded?.usage
+              ? `${recorded.usage.input_tokens} tokens · recorded ${recorded.date}`
+              : ''}
+        </p>
+        <div className="ml-auto flex gap-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setIndex((i) => (i + 1) % SHOWCASE.length)
+              setError(null)
+            }}
+            disabled={running}
+          >
+            <RefreshCw className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Another example
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href={`/play?p=${preset.slug}`}>Edit</Link>
+          </Button>
+          <Button size="sm" onClick={runLive} disabled={running || typing}>
+            {running ? 'Running…' : liveHere ? 'Run again' : 'Run it live'}
+          </Button>
+        </div>
       </div>
-
-      {live && (
-        <p className="mt-3 text-xs text-muted-foreground">
-          {recorded.note}
-        </p>
-      )}
     </div>
   )
 }

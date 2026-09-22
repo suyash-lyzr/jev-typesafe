@@ -19,7 +19,7 @@ export function LessonList() {
   return (
     <section className="mt-10">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Six lessons</h2>
+        <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">Six lessons</h2>
         {progress && (
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span aria-live="polite">

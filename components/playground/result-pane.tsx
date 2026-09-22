@@ -2,50 +2,71 @@
 
 import * as React from 'react'
 import { cn } from '@/lib/utils'
-import { Chip } from '@/components/ui/chip'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { InlineBanner } from '@/components/ui/inline-banner'
-import { AnswerView, BandChip, ConfidenceChip, NoulChip } from './answer-views'
+import { ChevronDown } from 'lucide-react'
+import { DecidingLoader } from './answer-row'
+import { StepLabel } from './type-badge'
+import { LlmPicker, QuotaDots, useCompareSetup } from './llm-picker'
+import { DecisionCard, PolicyCard, derivedDecision } from './decision-cards'
+import { getPreset, getVariant } from '@/content/presets'
 import { usePlayground, groupAnswers, type ResultTab, type LastRun } from '@/lib/store'
-import { evaluatePolicy, type Band, type NoulVerdict } from '@/lib/policy'
+import { evaluatePolicy } from '@/lib/policy'
 import { errorCardCopy } from '@/lib/errors'
 import { formatUsd, perMillionRequests } from '@/lib/pricing'
-import type { Answer, Question } from '@/lib/schema'
+
+/** Compare lives with the results it adds to: the next run also goes to an LLM. */
+function CompareToggle() {
+  const { compareOn, setCompareOn, compareQuota } = usePlayground()
+  useCompareSetup()
+  const out = compareQuota?.remaining === 0
+  // Nothing left today: the switch cannot stay on, or Run would be refused.
+  React.useEffect(() => {
+    if (out && compareOn) setCompareOn(false)
+  }, [out, compareOn, setCompareOn])
+
+  return (
+    <div
+      className={cn(
+        'ml-auto inline-flex h-10 shrink-0 items-center rounded-full border bg-card pl-1.5 pr-3 text-[13px] shadow-card transition-colors duration-fast',
+        out && 'opacity-60'
+      )}
+    >
+      <label
+        className={cn('inline-flex items-center gap-2 pr-1', out ? 'cursor-not-allowed' : 'cursor-pointer')}
+        title={out ? 'No free comparisons left today. They reset at 00:00 UTC.' : 'Send the next run to Jev and an OpenAI model together'}
+      >
+        <Switch checked={compareOn} onCheckedChange={setCompareOn} disabled={out} aria-label="Compare with an LLM" />
+        <span className={compareOn ? 'text-foreground' : 'text-muted-foreground'}>{compareOn ? 'Compare' : 'Compare with an LLM'}</span>
+      </label>
+      {compareOn && (
+        <>
+          <span className="mx-1 h-4 w-px bg-border" aria-hidden />
+          <LlmPicker bare />
+        </>
+      )}
+      {compareQuota && (
+        <>
+          <span className="mx-2 h-4 w-px bg-border" aria-hidden />
+          <QuotaDots />
+        </>
+      )}
+    </div>
+  )
+}
 
 /**
  * The right-hand pane: what came back, and what your code would do about it.
  */
 
 const TABS: Array<{ id: ResultTab; label: string }> = [
-  { id: 'answers', label: 'Answers' },
+  { id: 'answers', label: 'Decisions' },
   { id: 'policy', label: 'Policy' },
   { id: 'compare', label: 'Compare' },
   { id: 'json', label: 'JSON' },
   { id: 'code', label: 'Code' },
 ]
-
-/** A live counter while a run is in flight; aria-hidden so it cannot spam a screen reader. */
-function RunningMs() {
-  const [ms, setMs] = React.useState(0)
-
-  React.useEffect(() => {
-    const started = performance.now()
-    let frame = 0
-    const tick = () => {
-      setMs(Math.round(performance.now() - started))
-      frame = requestAnimationFrame(tick)
-    }
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
-  }, [])
-
-  return (
-    <span className="font-mono tabular" aria-hidden>
-      {ms} ms
-    </span>
-  )
-}
 
 function linkFor(source: string): string | null {
   if (/^https?:\/\//.test(source)) return source
@@ -54,70 +75,60 @@ function linkFor(source: string): string | null {
 }
 
 /**
- * Where a replayed answer came from, stated on the page rather than hidden in
- * a tooltip — including the note, which is often the part that matters
- * ("these numbers belong to the docs' ticket, not ours").
+ * Where a replayed answer came from: one line on the page, the note one click
+ * away. Short, but never hidden — a replay must never pass for a live run.
  */
 export function ProvenanceNote({ run }: { run: LastRun }) {
   if (!run.replay || !run.provenance) return null
   const p = run.provenance
   const href = linkFor(p.source)
+  const ours = p.source.startsWith('Jev Lab')
 
   return (
-    <div className="mb-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
-      <p>
-        <span className="font-medium text-foreground">Recorded, not live.</span>{' '}
-        {p.source.startsWith('Jev Lab') ? 'Recorded by' : 'Quoted from'}{' '}
-        {href ? (
-          <a className="text-brand hover:underline" href={href} target="_blank" rel="noreferrer">
-            {p.source}
-          </a>
-        ) : (
-          p.source
-        )}{' '}
-        (<span className="font-mono">{p.model}</span>, {p.date}). Press Run to ask the model now — a
-        live answer can differ.
-      </p>
-      {p.note && <p className="mt-1">{p.note}</p>}
-    </div>
+    <details className="group mb-3 rounded-xl border border-dashed border-border px-3.5 py-2.5 text-xs text-muted-foreground">
+      <summary className="flex cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+        <span className="rounded-full bg-brand-soft px-2 py-0.5 font-mono text-[11px] text-brand-text">replay</span>
+        <span className="min-w-0 truncate">
+          {ours ? 'Recorded by Jev Lab' : 'Quoted from '}
+          {!ours &&
+            (href ? (
+              <a className="text-brand hover:underline" href={href} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+                {p.source}
+              </a>
+            ) : (
+              p.source
+            ))}{' '}
+          · <span className="font-mono">{p.model}</span> · {p.date}
+        </span>
+        {p.note && (
+          <ChevronDown className="ml-auto h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180" aria-label="Details" />
+        )}
+      </summary>
+      {p.note && <p className="mt-2 leading-relaxed">{p.note}</p>}
+      <p className="mt-2 leading-relaxed">Press Run to ask the model now; a live answer can differ.</p>
+    </details>
   )
 }
 
-export function RunStrip() {
+/** The run's facts, as one quiet mono line at the right of the tab bar. */
+function RunMeta() {
   const { lastRun, running, isDirtySinceRun } = usePlayground()
   const dirty = isDirtySinceRun()
 
-  if (running) {
-    return (
-      <div className="flex items-center gap-3 border-b border-border px-4 py-2 font-mono text-xs text-muted-foreground">
-        <RunningMs />
-        <span className="font-sans">Evaluating every question in parallel…</span>
-      </div>
-    )
-  }
+  if (running) return <DecidingLoader className="text-xs" />
+  if (!lastRun) return <span className="text-faint">no run yet</span>
 
-  if (!lastRun) {
-    return (
-      <div className="border-b border-border px-4 py-2 font-mono text-xs text-muted-foreground">
-        no run yet
-      </div>
-    )
-  }
+  const changed = dirty && (
+    <span className="rounded-full bg-warning-soft px-2 py-0.5 font-sans text-[11px] text-warning-text">edited since run</span>
+  )
 
   // A replay was never timed and cost this site nothing: show neither.
   if (lastRun.replay || !lastRun.timing) {
     return (
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-4 py-2 font-mono text-xs text-muted-foreground">
-        <Chip variant="warning">replay</Chip>
-        <span className="text-foreground">{lastRun.model}</span>
-        {lastRun.provenance && <span>recorded {lastRun.provenance.date}</span>}
-        {lastRun.usage && lastRun.usage.input_tokens > 0 && (
-          <span className="tabular">
-            {lastRun.usage.input_tokens} in / {lastRun.usage.output_tokens} out (as recorded)
-          </span>
-        )}
-        {dirty && <Chip variant="default">request changed since recording</Chip>}
-      </div>
+      <>
+        {changed}
+        <span className="truncate">{lastRun.model}</span>
+      </>
     )
   }
 
@@ -125,176 +136,43 @@ export function RunStrip() {
     lastRun.clientMs != null ? Math.max(0, lastRun.clientMs - lastRun.timing.serverMs) : null
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-4 py-2 font-mono text-xs text-muted-foreground">
-      <span className="text-foreground">{lastRun.model}</span>
-      <span aria-hidden>·</span>
+    <>
+      {changed}
+      <span className="truncate text-foreground">{lastRun.model}</span>
       {/* Split deliberately: TypeSafe publishes no timing header, so neither
           number may be presented as the model's own compute time. */}
-      <span className="tabular">API {lastRun.timing.jevMs} ms</span>
-      {clientOverhead != null && <span className="tabular">+{clientOverhead} ms to you</span>}
-      {lastRun.usage && (
-        <>
-          <span aria-hidden>·</span>
-          <span className="tabular">
-            {lastRun.usage.input_tokens} in / {lastRun.usage.output_tokens} out
-          </span>
-        </>
-      )}
+      <span
+        className="tabular"
+        title={clientOverhead != null ? `API ${lastRun.timing.jevMs} ms, plus ${clientOverhead} ms between our server and you` : undefined}
+      >
+        {lastRun.timing.jevMs} ms
+      </span>
+      {lastRun.usage && <span className="hidden tabular xl:inline">{lastRun.usage.input_tokens} tok</span>}
       {lastRun.costUsd != null && (
-        <>
-          <span aria-hidden>·</span>
-          <span className="tabular" title={`≈ ${perMillionRequests(lastRun.costUsd)} per million requests like this one`}>
-            {formatUsd(lastRun.costUsd)}
-          </span>
-        </>
+        <span className="tabular" title={`≈ ${perMillionRequests(lastRun.costUsd)} per million requests like this one`}>
+          {formatUsd(lastRun.costUsd)}
+        </span>
       )}
-      {lastRun.timing.retries > 0 && <Chip variant="outline">{lastRun.timing.retries} retry</Chip>}
-      {dirty && <Chip variant="default">request changed since run</Chip>}
-    </div>
-  )
-}
-
-function VariantColumn({
-  label,
-  answer,
-  showGuide,
-  noulThresholds,
-}: {
-  label: string
-  answer?: Answer
-  showGuide: boolean
-  noulThresholds?: { yes: number; no: number }
-}) {
-  return (
-    <div>
-      <div className="mb-2 flex items-center gap-2">
-        <p className="text-xs font-medium">{label}</p>
-        {answer && answer.type !== 'noul' && <ConfidenceChip confidence={answer.confidence} />}
-      </div>
-      {answer ? (
-        <AnswerView answer={answer} showGuide={showGuide} noulThresholds={noulThresholds} />
-      ) : (
-        <p className="text-xs text-muted-foreground">No answer came back for this variant.</p>
-      )}
-    </div>
-  )
-}
-
-function ResultCard({
-  id,
-  a,
-  b,
-  paired,
-  question,
-  band,
-  noulVerdict,
-  greyed,
-  showGuide,
-  noulThresholds,
-  selected,
-  onSelect,
-}: {
-  id: string
-  a?: Answer
-  b?: Answer
-  paired: boolean
-  question?: Question
-  band?: Band
-  noulVerdict?: NoulVerdict
-  greyed: boolean
-  showGuide: boolean
-  noulThresholds?: { yes: number; no: number }
-  selected: boolean
-  onSelect: () => void
-}) {
-  const instructions =
-    typeof question?.instructions === 'string'
-      ? question.instructions
-      : question?.instructions
-        ? JSON.stringify(question.instructions)
-        : ''
-
-  const first = a ?? b
-  if (!first) return null
-
-  return (
-    <article
-      aria-label={`${id} answer`}
-      className={cn(
-        'rounded-lg border bg-card p-4 text-left transition-opacity duration-base',
-        selected ? 'border-brand' : 'border-border',
-        greyed && 'opacity-50'
-      )}
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-sm font-medium">{id}</span>
-        <Chip variant="outline">{first.type.toUpperCase()}</Chip>
-        {!paired && first.type !== 'noul' && <ConfidenceChip confidence={first.confidence} />}
-        {band && <BandChip band={band} />}
-        {noulVerdict && <NoulChip verdict={noulVerdict} />}
-        {paired && <Chip variant="default">A/B · policy follows A</Chip>}
-        {greyed && <Chip variant="outline">not on this path</Chip>}
-        <button
-          type="button"
-          onClick={onSelect}
-          aria-pressed={selected}
-          className="ml-auto rounded text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-        >
-          {selected ? 'Unhighlight question' : 'Show question'}
-        </button>
-      </div>
-
-      {instructions && (
-        <p className="mt-1 truncate text-xs text-muted-foreground" title={instructions}>
-          {instructions}
-        </p>
-      )}
-
-      <div className="mt-3">
-        {paired ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            <VariantColumn label="Variant A" answer={a} showGuide={showGuide} noulThresholds={noulThresholds} />
-            <VariantColumn label="Variant B" answer={b} showGuide={showGuide} noulThresholds={noulThresholds} />
-          </div>
-        ) : (
-          <AnswerView answer={first} showGuide={showGuide} noulThresholds={noulThresholds} />
-        )}
-      </div>
-
-      {paired && a && b && showGuide && (
-        <p className="mt-3 border-t border-border pt-2 text-xs text-muted-foreground">
-          Both variants travelled in one request and were evaluated in parallel, so the second cost
-          only its own question tokens.
-          {a.type !== b.type && (
-            <>
-              {' '}
-              They are different question types, so the numbers are not comparable: the docs record
-              a Noul at 0.22 and a yes/no Choice at 0.01 for the same ticket. Never carry a
-              threshold from one to the other.
-            </>
-          )}
-        </p>
-      )}
-    </article>
+      {lastRun.timing.retries > 0 && <span>{lastRun.timing.retries} retry</span>}
+    </>
   )
 }
 
 export function AnswersTab() {
-  const { lastRun, questions, policy, selectedQuestion, selectQuestion, running, notice, dismissNotice } =
+  const { lastRun, questions, policy, selectedQuestion, selectQuestion, running, notice, dismissNotice, presetId, variantId } =
     usePlayground()
-  const [showGuide, setShowGuide] = React.useState(true)
 
   if (running) {
     const count = Object.keys(questions).length || 3
     return (
-      <div className="space-y-3 p-4" aria-busy="true">
-        {Array.from({ length: count }).map((_, i) => (
-          <div key={i} className="rounded-lg border border-border bg-card p-4">
-            <Skeleton className="h-4 w-32" />
-            <div className="mt-3 space-y-2">
-              <Skeleton className="h-2 w-full" />
-              <Skeleton className="h-2 w-4/5" />
-              <Skeleton className="h-2 w-2/3" />
+      <div className="space-y-2.5 p-4" aria-busy="true">
+        {Array.from({ length: Math.min(count, 6) }).map((_, i) => (
+          <div key={i} className="rounded-[14px] border border-border bg-card p-4">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="mt-4 h-7 w-32" />
+            <div className="mt-4 space-y-3">
+              <Skeleton className="h-1.5 w-full rounded-full" />
+              <Skeleton className="h-1.5 w-4/5 rounded-full" />
             </div>
           </div>
         ))}
@@ -312,11 +190,11 @@ export function AnswersTab() {
     return (
       <div className="p-4">
         {noticeBanner}
-        <div className="flex min-h-[320px] flex-col items-center justify-center p-8 text-center">
-          <h3 className="text-xl font-semibold">Run to see answers</h3>
-          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Jev evaluates every question against the state in parallel and hands back typed values
-            your code can branch on. Nothing runs until you press Run.
+        <div className="flex min-h-[320px] flex-col items-center justify-center rounded-[14px] border border-dashed border-border p-8 text-center">
+          <p className="font-display text-base font-semibold">No decisions yet</p>
+          <p className="mt-1.5 max-w-xs text-sm text-muted-foreground">
+            Press <span className="font-medium text-foreground">Run</span> and every question comes back as a
+            typed answer with its probabilities.
           </p>
         </div>
       </div>
@@ -326,59 +204,45 @@ export function AnswersTab() {
   const outcome = evaluatePolicy(policy, lastRun.answers, questions)
   const groups = groupAnswers(lastRun.answers)
   const missing = Object.keys(questions).filter((id) => !groups.some((g) => g.id === id))
+  const animateKey = lastRun.hash + String(lastRun.clientMs ?? '')
+
+  // The one decision these answers feed: the use case's own, or a plain reading of the first question.
+  const preset = presetId ? getPreset(presetId) : null
+  const named = preset ? getVariant(preset, variantId ?? undefined).decision ?? preset.decision : undefined
+  const spec = named && Object.hasOwn(questions, named.question) ? named : derivedDecision(questions)
+  const specAnswer = spec ? groups.find((g) => g.id === spec.question)?.a : undefined
 
   return (
-    <div className="p-4">
+    <div className="space-y-2.5 p-4">
       {noticeBanner}
       <ProvenanceNote run={lastRun} />
 
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">
-          {groups.length} answer{groups.length === 1 ? '' : 's'} from one request
-        </p>
-        <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-          <Switch checked={showGuide} onCheckedChange={setShowGuide} aria-label="Reading guide" />
-          Reading guide
-        </label>
-      </div>
+      {groups.map(({ id, a, b, paired }, index) => {
+        const first = a ?? b
+        if (!first) return null
+        return (
+          <DecisionCard
+            key={`${animateKey}-${id}`}
+            index={index}
+            id={id}
+            answer={first}
+            b={paired && a ? b : undefined}
+            question={Object.hasOwn(questions, id) ? questions[id] : undefined}
+            greyed={outcome.greyed.includes(id)}
+            selected={selectedQuestion === id}
+            onSelect={() => selectQuestion(selectedQuestion === id ? null : id)}
+            animateKey={animateKey}
+          />
+        )
+      })}
 
-      <div className="space-y-3">
-        {groups.map(({ id, a, b, paired }) => {
-          const noulRule = policy.rules.find((r) => r.q === id && r.kind === 'noul')
-          return (
-            <ResultCard
-              key={id}
-              id={id}
-              a={a}
-              b={b}
-              paired={paired}
-              question={Object.hasOwn(questions, id) ? questions[id] : undefined}
-              band={outcome.bands[id]}
-              noulVerdict={outcome.nouls[id]}
-              greyed={outcome.greyed.includes(id)}
-              showGuide={showGuide}
-              noulThresholds={
-                noulRule && noulRule.kind === 'noul' ? { yes: noulRule.yes, no: noulRule.no } : undefined
-              }
-              selected={selectedQuestion === id}
-              onSelect={() => selectQuestion(selectedQuestion === id ? null : id)}
-            />
-          )
-        })}
-      </div>
+      {spec && <PolicyCard spec={spec} answer={specAnswer} />}
 
       {missing.length > 0 && (
-        <p className="mt-3 text-xs text-muted-foreground">
+        <p className="text-xs text-faint">
           {lastRun.replay
-            ? `The recording has no answer for ${missing.join(', ')} — the source did not publish one. Run it to ask the model.`
-            : `No answer yet for ${missing.join(', ')}: added after this run. Run again to include it.`}
-        </p>
-      )}
-
-      {outcome.greyed.length > 0 && (
-        <p className="mt-3 text-xs text-muted-foreground">
-          Greyed by policy: {outcome.greyed.join(', ')} — asked speculatively in the same request,
-          and ignored on this path. Asking them cost only their own tokens.
+            ? `Not in the recording: ${missing.join(', ')}. Run to ask the model.`
+            : `Added after this run: ${missing.join(', ')}. Run again to include.`}
         </p>
       )}
     </div>
@@ -407,7 +271,7 @@ export function ErrorCard() {
   )
 }
 
-export function ResultTabs({ children }: { children: React.ReactNode }) {
+export function ResultTabs({ children, numbered = true }: { children: React.ReactNode; numbered?: boolean }) {
   const { tab, setTab, compareOn, lastRun } = usePlayground()
   const showCompare = compareOn || Boolean(lastRun?.compare)
   const tabs = TABS.filter((t) => t.id !== 'compare' || showCompare)
@@ -429,9 +293,16 @@ export function ResultTabs({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <RunStrip />
-      <div className="flex gap-1 overflow-x-auto border-b border-border px-2" role="tablist" aria-label="Result views" onKeyDown={onKeyDown}>
+    <div className="flex h-full flex-col bg-results">
+      <div className="flex items-start gap-3 px-4 pt-4">
+        <div className="min-w-0">
+          <StepLabel n={numbered ? 4 : undefined}>Read the decisions</StepLabel>
+          <p className={cn('mt-1 text-[13px]', numbered && 'pl-7', 'text-muted-foreground')}>Typed answers your code can act on</p>
+        </div>
+        <CompareToggle />
+      </div>
+      <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
+      <div className="inline-flex shrink-0 gap-0.5 overflow-x-auto rounded-full bg-muted p-[3px]" role="tablist" aria-label="Result views" onKeyDown={onKeyDown}>
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -445,15 +316,19 @@ export function ResultTabs({ children }: { children: React.ReactNode }) {
             tabIndex={tab === t.id ? 0 : -1}
             onClick={() => setTab(t.id)}
             className={cn(
-              'shrink-0 border-b-2 px-3 py-2 text-[13px] font-medium transition-colors duration-fast',
+              'shrink-0 rounded-full px-3 py-1 text-[12.5px] font-medium transition-colors duration-fast',
               tab === t.id
-                ? 'border-foreground text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+                ? 'bg-card text-foreground shadow-[0_1px_2px_hsl(222_47%_11%/0.08)]'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {t.label}
           </button>
         ))}
+      </div>
+      <div className="ml-auto flex min-w-0 items-center gap-3 font-mono text-xs text-muted-foreground" aria-live="off">
+        <RunMeta />
+      </div>
       </div>
       <div
         id="result-panel"

@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PageShell } from '@/components/layout/chrome'
+import { LyzrLogo } from '@/components/layout/lyzr-logo'
+import { DataFlow } from '@/components/visuals/visuals'
+import { pastel } from '@/components/visuals/pastel'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { SITE } from '@/lib/site'
 import { PRICING } from '@/lib/pricing'
@@ -12,119 +16,120 @@ export const metadata: Metadata = {
     'Who built Jev Lab, who pays for the runs, where every number comes from, and what this site is not.',
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mt-10 border-t border-border pt-7">
-      <h2 className="text-xl font-semibold">{title}</h2>
-      <div className="mt-3 max-w-[68ch] space-y-3 text-sm leading-relaxed text-muted-foreground">
-        {children}
-      </div>
-    </section>
-  )
-}
-
 export default function AboutPage() {
   return (
     <PageShell>
-      <h1 className="text-3xl font-semibold tracking-tight">About {SITE.name}</h1>
+      <h1 className="text-4xl font-semibold tracking-[-0.03em]">About {SITE.name}</h1>
       <p className="mt-3 max-w-[62ch] text-base leading-relaxed text-muted-foreground">
         {SITE.description}
       </p>
 
-      <Section title="Why it exists">
-        <p>
-          Jev is unusual enough that reading about it does not really land. A model that never writes a
-          sentence, that answers only in probability distributions, and whose whole value is that your
-          code stays in charge — that is easier to understand after one run than after a page of
-          documentation.
-        </p>
-        <p>
-          So this is a playground first and a course second. Every claim on the site has a request
-          behind it that you can open, change and send.
-        </p>
-      </Section>
-
-      <Section title="Who pays for the runs">
-        <p>
-          Lyzr does. There is no sign-up and no key to paste: runs go through our server on our
-          TypeSafe key, which is why the proxy is wrapped in rate limits and a daily dollar cap. The
-          defaults are {LIMITS.play.perMinute} runs a minute and {LIMITS.play.perDay} a day per
-          network, with the live LLM comparison held much tighter at {LIMITS.compare.perMinute} a
-          minute and {LIMITS.compare.perDay} a day because it is the expensive half.
-        </p>
-        <p>
-          When the day&rsquo;s budget runs out, the site does not break. A preset you have not edited
-          shows the answer recorded for it, if it has one, labelled as a replay with its source and
-          date; anything else says live runs are paused. Every page stays readable, and live runs
-          return at 00:00 UTC. If you want to work without any of that, get your own key at{' '}
+      <section className="mt-10" aria-labelledby="path-heading">
+        <h2 id="path-heading" className="text-xl font-semibold">Where a run goes</h2>
+        <p className="mt-1.5 text-sm text-muted-foreground">No sign-up, no key to paste. Lyzr pays, so every run passes our guard rails first.</p>
+        <DataFlow
+          className="mt-5"
+          nodes={[
+            { title: 'Your browser', sub: 'History and progress stay here', icon: 'monitor' },
+            { title: 'Lyzr server', sub: 'Rate limits · daily $ cap · never logs your text', icon: 'shield', tone: 'ink' },
+            [
+            { title: 'TypeSafe', sub: 'Jev answers', icon: 'cpu' },
+            { title: 'OpenAI', sub: 'Only when you compare', icon: 'sparkles', tone: 'muted' },
+          ],
+          ]}
+        />
+        <dl className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[
+            { v: LIMITS.play.perMinute, l: 'runs / minute' },
+            { v: LIMITS.play.perDay, l: 'runs / day' },
+            { v: LIMITS.compare.perMinute, l: 'comparisons / minute' },
+            { v: LIMITS.compare.perDay, l: 'comparisons / day' },
+          ].map((x, i) => (
+            <div key={x.l} className={cn('rounded-[16px] border px-5 py-4 shadow-card', pastel(i))}>
+              <dt className="sr-only">{x.l}</dt>
+              <dd>
+                <span className="num block text-[24px] font-semibold leading-none">{x.v}</span>
+                <span className="mt-1.5 block text-[12.5px] text-muted-foreground">{x.l}, per network</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-3 max-w-[70ch] text-[13px] leading-relaxed text-muted-foreground">
+          When the day&rsquo;s budget runs out nothing breaks: unedited examples show their recorded answer, and live runs return at
+          00:00 UTC. Want no limits? Get your own key at{' '}
           <a className="text-brand hover:underline" href={SITE.links.console}>
             console.typesafe.ai
           </a>{' '}
-          — at ${PRICING.jev.inPerM} per million input tokens with output free, a session like this one
-          costs a fraction of a cent.
+          — at ${PRICING.jev.inPerM} per million input tokens, a session costs a fraction of a cent.
         </p>
-      </Section>
+      </section>
 
-      <Section title="How we handle numbers">
-        <p>
-          Every figure on this site is one of two things, and it is always marked which. A{' '}
-          <strong className="text-foreground">live</strong> number is a single run from our server,
-          network included, from {SITE.region}. A <strong className="text-foreground">replay</strong> is
-          a response we recorded, shown with the docs page it came from, the versioned model id that
-          produced it, and the date.
+      <section className="mt-12" aria-labelledby="numbers-heading">
+        <h2 id="numbers-heading" className="text-xl font-semibold">Every number is one of two kinds</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className="rounded-[16px] border border-border bg-card p-5 shadow-card">
+            <span className="rounded-full bg-success-soft px-2 py-0.5 font-mono text-[11px] text-success-text">live</span>
+            <h3 className="mt-3 text-[15px] font-semibold">A single run, just now</h3>
+            <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+              From our server in {SITE.region}, network included, with the versioned model id that answered.
+            </p>
+          </div>
+          <div className="rounded-[16px] border border-border bg-card p-5 shadow-card">
+            <span className="rounded-full bg-brand-soft px-2 py-0.5 font-mono text-[11px] text-brand-text">replay</span>
+            <h3 className="mt-3 text-[15px] font-semibold">A response we recorded</h3>
+            <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+              Shown with its source, model id and date. Some come from TypeSafe&rsquo;s small cookbook demo sets.
+            </p>
+          </div>
+        </div>
+        <p className="mt-3 text-[13px] text-muted-foreground">
+          Neither is a benchmark. They show the shape of a result; TypeSafe&rsquo;s own claims are quoted as theirs.
         </p>
-        <p>
-          Neither kind is a benchmark. Nothing here is graded against a right answer, several recorded
-          runs came from small demo sets in TypeSafe&rsquo;s cookbooks — the guardrail
-          cookbook&rsquo;s fifteen messages, the retrieval cookbook&rsquo;s twelve passages — and some
-          were recorded on jev-1.12 rather than the current model.
-          They show the shape of a result. Where we quote TypeSafe&rsquo;s own performance claims, we
-          say they are TypeSafe&rsquo;s and repeat their conditions.
-        </p>
-        <p>
-          We also print the versioned model id from each response rather than the alias we asked for,
-          because <span className="font-mono text-xs">jev-latest</span> moves and a number is worthless
-          without knowing what produced it.
-        </p>
-      </Section>
+      </section>
 
-      <Section title="What this site is not">
-        <p>
-          It is not affiliated with TypeSafe AI, not endorsed by them, and not a substitute for{' '}
+      <section className="mt-12 rounded-[16px] border border-dashed border-border px-5 py-4" aria-label="What this site is not">
+        <p className="text-[13.5px] leading-relaxed text-muted-foreground">
+          <strong className="text-foreground">Not affiliated with TypeSafe AI.</strong> Their{' '}
           <a className="text-brand hover:underline" href={SITE.links.docs}>
-            their documentation
-          </a>
-          , which is the authority on everything here. &ldquo;Jev&rdquo; and
-          &ldquo;TypeSafe&rdquo; are their names. Where our reading of the docs differs from the docs,
-          the docs are right.
-        </p>
-        <p>
-          It is also not a place to put real data. See the{' '}
+            documentation
+          </a>{' '}
+          is the authority — where we differ, the docs are right. And not a place for real data: see{' '}
           <Link className="text-brand hover:underline" href="/privacy">
-            privacy page
-          </Link>{' '}
-          for exactly what is sent, logged and stored.
+            privacy
+          </Link>
+          .
         </p>
-      </Section>
+      </section>
 
-      <Section title="How it is built">
-        <p>
-          Next.js on Vercel. The TypeSafe contract is mirrored once as a Zod schema that both the
-          browser editor and the server proxy import, so a request that validates in the form validates
-          at the edge of the network too. Rate limiting and the spend cap run on Upstash Redis. Spend
-          is reserved from an estimate before each call and settled against the real bill after, so
-          concurrent requests can pass the cap by at most the gap between an estimate and a bill —
-          fractions of a cent.
-        </p>
-        <p>
-          The error fixtures under <span className="font-mono text-xs">content/recorded/errors</span>{' '}
-          are real API rejections we captured on purpose — a Score with 11 levels, a Choice with 256
-          options, a missing state — which is how the linter knows which limits TypeSafe actually
-          enforces and which are only advice.
-        </p>
-      </Section>
+      <details className="group mt-4 rounded-[16px] border border-border bg-card px-5 py-3.5 shadow-card">
+        <summary className="flex cursor-pointer list-none items-center justify-between text-[14px] font-medium [&::-webkit-details-marker]:hidden">
+          How it&rsquo;s built
+          <span className="text-xs font-normal text-faint group-open:hidden">show</span>
+          <span className="hidden text-xs font-normal text-faint group-open:inline">hide</span>
+        </summary>
+        <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-muted-foreground">
+          <li>Next.js on Vercel. One Zod schema mirrors the TypeSafe contract for both the editor and the proxy.</li>
+          <li>Rate limits and the spend cap run on Upstash Redis. Spend is reserved from an estimate, then settled against the real bill.</li>
+          <li>
+            The error fixtures in <span className="font-mono text-xs">content/recorded/errors</span> are real API rejections captured
+            on purpose, so the linter knows which limits are enforced.
+          </li>
+        </ul>
+      </details>
 
-      <section className="mt-10 rounded-lg border border-border bg-card p-5">
+      <section className="mt-12 flex flex-col gap-4 rounded-[16px] border bg-pastel-4 p-6 shadow-card sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-faint">Built and paid for by</p>
+          <a href={SITE.links.lyzr} target="_blank" rel="noreferrer" className="mt-2 inline-block hover:opacity-80" aria-label="Lyzr (opens lyzr.ai)">
+            <LyzrLogo className="h-9" alt="Lyzr" />
+          </a>
+        </div>
+        <a href={SITE.links.lyzr} target="_blank" rel="noreferrer" className="text-sm text-muted-foreground hover:text-foreground">
+          lyzr.ai ↗
+        </a>
+      </section>
+
+      <section className="mt-10 rounded-[16px] border border-border bg-card p-5 shadow-card">
         <h2 className="text-xl font-semibold">Start somewhere</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button asChild>

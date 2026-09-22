@@ -9,3 +9,6 @@ build/
 next-env.d.ts
 .env*.local
 .vercel/
+
+# Local design references, not for the repo
+/Reference/

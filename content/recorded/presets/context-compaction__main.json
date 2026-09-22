@@ -1,0 +1,79 @@
+{
+  "preset": "context-compaction",
+  "variant": "main",
+  "recordedAt": "2026-09-22T00:07:54.637Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "task": "Book flights and a hotel for the Lisbon offsite, 14–17 October.",
+      "message": "User: Two more things before you book — the CFO will only approve refundable fares, and please keep the hotel within walking distance of the venue in Chiado. Also the weather there looks lovely!"
+    },
+    "model": "jev-latest",
+    "questions": {
+      "handling": {
+        "type": "choice",
+        "instructions": "How should the agent keep this message in its context?",
+        "criteria": {
+          "keep_verbatim": "The exact wording matters later, such as a quote or a code snippet",
+          "keep_facts": "Keep the requirements and facts it states; drop the small talk",
+          "drop": "Nothing in it is needed for the rest of the task",
+          "unclear": "Cannot tell from this message alone"
+        }
+      },
+      "has_constraint": {
+        "type": "noul",
+        "instructions": "Does the message contain a requirement the agent must still honour?"
+      },
+      "relevance": {
+        "type": "score",
+        "instructions": "How relevant is the message to the task still in progress?",
+        "criteria": [
+          "Irrelevant now",
+          "Background only",
+          "Relevant",
+          "Critical"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "handling": {
+      "type": "choice",
+      "choice": "keep_facts",
+      "confidence": 1,
+      "probabilities": {
+        "keep_facts": 1,
+        "drop": 0,
+        "unclear": 0,
+        "keep_verbatim": 0
+      }
+    },
+    "has_constraint": {
+      "type": "noul",
+      "noul": 0.98
+    },
+    "relevance": {
+      "type": "score",
+      "score": 2.96,
+      "confidence": 0.96,
+      "legend": {
+        "0": "Irrelevant now",
+        "1": "Background only",
+        "2": "Relevant",
+        "3": "Critical"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 0.04,
+        "3": 0.96
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 528,
+    "output_tokens": 86
+  },
+  "costUsd": 0.000022176000000000002,
+  "clientMs": 1011
+}

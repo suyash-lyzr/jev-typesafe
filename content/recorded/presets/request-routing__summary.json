@@ -1,0 +1,73 @@
+{
+  "preset": "request-routing",
+  "variant": "summary",
+  "recordedAt": "2026-09-22T00:02:45.125Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "Summarise these call notes into five bullet points for the team: Customer (Northwind) renewing in March. Wants SSO before renewal, currently on password login. Finance asked for annual invoicing instead of monthly. Two support escalations last quarter, both about CSV export timeouts; engineering says the fix ships in January. They may add 40 seats if the analytics add-on is discounted. Next call booked for 12 December with their CTO.",
+    "model": "jev-latest",
+    "questions": {
+      "tier": {
+        "type": "choice",
+        "instructions": "What is the cheapest model tier that can handle this request well?",
+        "criteria": {
+          "small": "A small, fast model: a fact, a lookup, a one-line rewrite or a yes/no",
+          "standard": "A standard model: drafting, summarising or explaining a page of material",
+          "frontier": "The strongest model: long multi-step reasoning or a large, careful code change",
+          "unclear": "Too vague to size up without asking the user first"
+        }
+      },
+      "effort": {
+        "type": "score",
+        "instructions": "How much work does a good answer take?",
+        "criteria": [
+          "One step: the answer fits in a sentence",
+          "A few steps: a paragraph to a page of output",
+          "Many interdependent steps that must all be right"
+        ]
+      },
+      "costly_mistake": {
+        "type": "noul",
+        "instructions": "Would a wrong answer be costly for the user?"
+      }
+    }
+  },
+  "answers": {
+    "tier": {
+      "type": "choice",
+      "choice": "standard",
+      "confidence": 0.78,
+      "probabilities": {
+        "unclear": 0,
+        "standard": 0.83,
+        "frontier": 0,
+        "small": 0.17
+      }
+    },
+    "effort": {
+      "type": "score",
+      "score": 0.86,
+      "confidence": 0.75,
+      "legend": {
+        "0": "One step: the answer fits in a sentence",
+        "1": "A few steps: a paragraph to a page of output",
+        "2": "Many interdependent steps that must all be right"
+      },
+      "probabilities": {
+        "0": 0.16,
+        "1": 0.83,
+        "2": 0.01
+      }
+    },
+    "costly_mistake": {
+      "type": "noul",
+      "noul": 0.42
+    }
+  },
+  "usage": {
+    "input_tokens": 578,
+    "output_tokens": 83
+  },
+  "costUsd": 0.000024276,
+  "clientMs": 311
+}

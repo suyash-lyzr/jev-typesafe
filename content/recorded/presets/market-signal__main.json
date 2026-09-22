@@ -1,0 +1,73 @@
+{
+  "preset": "market-signal",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:40:02.900Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "Reuters, 09:32: Northwind Semiconductor cuts full-year revenue guidance by 18%, citing weaker data-centre orders. Shares halted pre-market.\nWatchlist: NWSC (holding 1,200 shares), ACME, BRGT.",
+    "model": "jev-latest",
+    "questions": {
+      "about_watchlist": {
+        "type": "noul",
+        "instructions": "Is this news about a company on the watchlist?"
+      },
+      "direction": {
+        "type": "choice",
+        "instructions": "What does the news imply for that company's share price?",
+        "criteria": {
+          "bullish": "Likely to push the price up",
+          "bearish": "Likely to push the price down",
+          "neutral": "Unlikely to move it",
+          "unclear": "Cannot tell"
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "instructions": "How quickly does a portfolio manager need to see this?",
+        "criteria": [
+          "Background reading",
+          "Review today",
+          "Needs attention within minutes"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "about_watchlist": {
+      "type": "noul",
+      "noul": 0.92
+    },
+    "direction": {
+      "type": "choice",
+      "choice": "bearish",
+      "confidence": 1,
+      "probabilities": {
+        "bullish": 0,
+        "neutral": 0,
+        "unclear": 0,
+        "bearish": 1
+      }
+    },
+    "urgency": {
+      "type": "score",
+      "score": 1.98,
+      "confidence": 0.97,
+      "legend": {
+        "0": "Background reading",
+        "1": "Review today",
+        "2": "Needs attention within minutes"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.02,
+        "2": 0.98
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 482,
+    "output_tokens": 86
+  },
+  "costUsd": 0.000020244,
+  "clientMs": 346
+}

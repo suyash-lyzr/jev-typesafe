@@ -1,0 +1,80 @@
+{
+  "preset": "comment-moderation",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:26:24.686Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "Reply to @kestrel_22 in the ranked-play thread:\n\"lol you carried nothing, uninstall. people like you shouldn't even be online. btw I saw your stream yesterday, nice view from your window on Maple Street. see you around.\"",
+    "model": "jev-latest",
+    "questions": {
+      "category": {
+        "type": "choice",
+        "instructions": "Which category best describes this comment?",
+        "criteria": {
+          "fine": "Normal discussion, including blunt disagreement",
+          "spam": "Promotion, scams or repeated junk",
+          "harassment": "Insults or intimidation aimed at a person",
+          "hate": "Attacks on a group for who they are",
+          "self_harm": "The writer may be at risk of harming themselves",
+          "other": "A problem that fits none of these"
+        }
+      },
+      "contains_threat": {
+        "type": "noul",
+        "instructions": "Does the comment threaten the person it replies to, even indirectly?"
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "How harmful is this comment if it stays up?",
+        "criteria": [
+          "Harmless or merely rude",
+          "Hurtful, but no one is at risk",
+          "Intimidating; the target could reasonably feel unsafe",
+          "Dangerous; someone could be harmed"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "category": {
+      "type": "choice",
+      "choice": "harassment",
+      "confidence": 1,
+      "probabilities": {
+        "other": 0,
+        "fine": 0,
+        "spam": 0,
+        "harassment": 1,
+        "hate": 0,
+        "self_harm": 0
+      }
+    },
+    "contains_threat": {
+      "type": "noul",
+      "noul": 0.7
+    },
+    "severity": {
+      "type": "score",
+      "score": 2.25,
+      "confidence": 0.67,
+      "legend": {
+        "0": "Harmless or merely rude",
+        "1": "Hurtful, but no one is at risk",
+        "2": "Intimidating; the target could reasonably feel unsafe",
+        "3": "Dangerous; someone could be harmed"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.03,
+        "2": 0.68,
+        "3": 0.29
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 549,
+    "output_tokens": 97
+  },
+  "costUsd": 0.000023058,
+  "clientMs": 289
+}

@@ -1,0 +1,73 @@
+{
+  "preset": "support-ticket",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:18:25.886Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "Customer tier: Enterprise\nTicket: Payment authorisation requests return PAYMENT_GATEWAY_TIMEOUT after buyers click Pay. Our engineers reproduced it in the gateway logs this morning. Forty orders have failed in the last hour, and our product launch is today.",
+    "model": "jev-latest",
+    "questions": {
+      "team": {
+        "type": "choice",
+        "instructions": "Which team should own this support ticket?",
+        "criteria": {
+          "payments": "Checkout, payment processing, refunds and payouts",
+          "frontend": "Pages, buttons and forms that look or behave wrong",
+          "account": "Login, passwords, permissions and account settings",
+          "other": "Anything that belongs to none of these teams"
+        }
+      },
+      "needs_review": {
+        "type": "noul",
+        "instructions": "Should a human review this ticket before it is routed automatically?"
+      },
+      "impact": {
+        "type": "score",
+        "instructions": "How severe is the current customer impact?",
+        "criteria": [
+          "Minor inconvenience with a working alternative",
+          "An important workflow is degraded for some users",
+          "A core workflow is blocked or revenue is being lost"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "team": {
+      "type": "choice",
+      "choice": "payments",
+      "confidence": 1,
+      "probabilities": {
+        "frontend": 0,
+        "payments": 1,
+        "other": 0,
+        "account": 0
+      }
+    },
+    "needs_review": {
+      "type": "noul",
+      "noul": 0.93
+    },
+    "impact": {
+      "type": "score",
+      "score": 2,
+      "confidence": 1,
+      "legend": {
+        "0": "Minor inconvenience with a working alternative",
+        "1": "An important workflow is degraded for some users",
+        "2": "A core workflow is blocked or revenue is being lost"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 1
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 492,
+    "output_tokens": 76
+  },
+  "costUsd": 0.000020664,
+  "clientMs": 868
+}

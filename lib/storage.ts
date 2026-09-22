@@ -72,6 +72,8 @@ export interface Settings {
   readingGuide: boolean
   splitRatio: number
   dismissedBanner?: string
+  /** The OpenAI model picked for comparisons. */
+  compareModel?: string
 }
 
 export interface SessionTotals {

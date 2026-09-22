@@ -1,157 +1,93 @@
 import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Chip } from '@/components/ui/chip'
 import { TopNav, Footer } from '@/components/layout/chrome'
 import { FirstRunCard } from '@/components/landing/first-run-card'
 import { SITE } from '@/lib/site'
-import { allPresets } from '@/content/presets'
+import { pastel } from '@/components/visuals/pastel'
+import { cn } from '@/lib/utils'
 import { PRICING } from '@/lib/pricing'
 
 const FACTS = [
-  { value: '70–500 ms', label: 'end to end, per TypeSafe’s launch post' },
-  { value: `$${PRICING.jev.inPerM}/1M`, label: 'input tokens · output free' },
-  { value: '3 types', label: 'Choice · Score · Noul' },
-  { value: '0 words', label: 'it never generates text' },
+  { value: '70–500 ms', label: 'end to end', href: SITE.links.launchPost, title: 'Per TypeSafe’s launch post' },
+  { value: `$${PRICING.jev.inPerM}`, label: 'per 1M input tokens', href: null, title: 'Output tokens are free' },
+  { value: '3', label: 'question types', href: null, title: 'Choice, Score, Noul' },
+]
+
+const TILES = [
+  { href: '/presets', title: 'All examples', body: 'Thirty-eight real use cases, ready to edit and run.' },
+  { href: '/learn', title: 'Learn Jev', body: 'Six short lessons, about half an hour, each with a live checkpoint.' },
+  { href: '/compare', title: 'Jev vs an LLM', body: 'Same request, both models, measured.' },
 ]
 
 export default function Home() {
-  const teasers = allPresets.filter((p) => p.category !== 'limits').slice(1, 6)
-
   return (
     <>
       <TopNav />
 
-      <main id="main" className="mx-auto max-w-[1100px] px-4 py-12">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          A playground for TypeSafe AI&rsquo;s Jev · built by Lyzr · no account needed
-        </p>
-
-        <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+      <main id="main" className="mx-auto max-w-[1240px] px-4 sm:px-8">
+        <section className="grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_1.15fr] lg:gap-14 lg:py-20">
           <div>
-            <h1 className="text-5xl font-semibold leading-[1.05] tracking-tight">
+            <span className="inline-flex h-7 items-center gap-2 rounded-full border border-border bg-card px-3 text-[12.5px] text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
+              Free · no account · Jev by TypeSafe AI
+            </span>
+
+            <h1 className="mt-6 text-[42px] font-semibold leading-[1.04] tracking-[-0.035em] sm:text-[54px]">
               Jev doesn&rsquo;t write.
               <br />
-              It decides.
+              <span className="text-faint">It decides.</span>
             </h1>
 
-            <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted-foreground">
-              Send it a state and some typed questions. It hands back probabilities your code can
-              branch on — a choice, a score, or a yes/no — in about a tenth of a second. Your code
-              makes the final call.
+            <p className="mt-5 max-w-[30em] text-[17px] leading-relaxed text-muted-foreground">
+              Send text and typed questions. Get probabilities your code can branch on, in about a
+              tenth of a second.
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Button asChild>
-                <Link href="/play">Open the playground</Link>
+            <div className="mt-7 flex flex-wrap gap-2.5">
+              <Button asChild className="h-[38px] rounded-[10px] px-4">
+                <Link href="/play">Open playground</Link>
               </Button>
-              <Button variant="outline" asChild>
-                <Link href="/learn">Take the six lessons</Link>
+              <Button variant="outline" asChild className="h-[38px] rounded-[10px] bg-card px-4">
+                <Link href="/learn">Take the lessons</Link>
               </Button>
             </div>
 
-            <dl className="mt-10 grid grid-cols-2 gap-6">
+            <dl className="mt-10 grid grid-cols-3 gap-4 border-t border-dashed border-border pt-5 sm:flex sm:gap-x-8">
               {FACTS.map((fact) => (
-                <div key={fact.label}>
-                  <dt className="font-mono text-2xl font-semibold tabular">{fact.value}</dt>
-                  <dd className="mt-1 text-xs text-muted-foreground">{fact.label}</dd>
+                <div key={fact.label} title={fact.title}>
+                  <dt className="num text-lg font-semibold sm:text-[22px]">
+                    {fact.href ? (
+                      <a href={fact.href} className="hover:text-brand" target="_blank" rel="noreferrer">
+                        {fact.value}
+                      </a>
+                    ) : (
+                      fact.value
+                    )}
+                  </dt>
+                  <dd className="text-[12.5px] text-muted-foreground">{fact.label}</dd>
                 </div>
               ))}
             </dl>
-
-            <p className="mt-6 max-w-[46ch] text-xs text-muted-foreground">
-              Latency here is measured from our server, so it includes the network. TypeSafe&rsquo;s{' '}
-              <a className="text-brand hover:underline" href={SITE.links.launchPost}>
-                launch post
-              </a>{' '}
-              reports 70–500 ms end to end.
-            </p>
           </div>
 
           <FirstRunCard />
-        </div>
-
-        {/* How it works */}
-        <section className="mt-20 border-t border-border pt-10">
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            How it works
-          </h2>
-          <div className="mt-5 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              ['① State', 'A ticket, a document, a JSON record — whatever your code already has.'],
-              ['② Questions', 'Choice, Score and Noul. Each one is judged on its own, in parallel.'],
-              ['③ Typed answers', 'A full probability distribution, plus confidence on Choice and Score.'],
-              ['④ Your code', 'Thresholds, if/else, escalation. The model never decides anything.'],
-            ].map(([title, body]) => (
-              <div key={title}>
-                <h3 className="text-[15px] font-semibold">{title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{body}</p>
-              </div>
-            ))}
-          </div>
         </section>
 
-        {/* Presets */}
-        <section className="mt-16">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              Start with a preset
-            </h2>
-            <Link href="/presets" className="text-sm text-brand hover:underline">
-              All presets →
+        <section className="grid gap-3 pb-8 sm:grid-cols-3" aria-label="Explore">
+          {TILES.map((tile, i) => (
+            <Link key={tile.href} href={tile.href} className={cn('group rounded-[16px] border p-5 shadow-card', pastel(i))}>
+              <span className="flex items-center justify-between font-display text-[15px] font-semibold">
+                {tile.title}
+                <ArrowUpRight
+                  className="h-4 w-4 text-faint transition-transform duration-fast group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground"
+                  aria-hidden
+                />
+              </span>
+              <span className="mt-1 block text-[13.5px] text-muted-foreground">{tile.body}</span>
             </Link>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {teasers.map((preset) => (
-              <Link
-                key={preset.slug}
-                href={`/play?p=${preset.slug}`}
-                className="rounded-lg border border-border bg-card p-4 transition-colors duration-fast hover:bg-accent"
-              >
-                <h3 className="text-[13px] font-medium">{preset.title}</h3>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  {preset.teaches}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {[...new Set(Object.values(preset.questions).map((q) => q.type))].map((t) => (
-                    <Chip key={t} variant="outline">
-                      {t.toUpperCase()}
-                    </Chip>
-                  ))}
-                </div>
-              </Link>
-            ))}
-          </div>
+          ))}
         </section>
-
-        {/* Limits + compare */}
-        <section className="mt-16 grid gap-6 border-t border-border pt-10 md:grid-cols-2">
-          <div>
-            <h2 className="text-xl font-semibold">Where it breaks</h2>
-            <p className="mt-2 max-w-[46ch] text-sm leading-relaxed text-muted-foreground">
-              Counting, dates, structural invariants, injected instructions. TypeSafe documents nine
-              failure modes for jev-1.13; four of them run live here, plus one common Score mistake,
-              most of them beside the rewrite that works.
-            </p>
-            <Link href="/limits" className="mt-3 inline-block text-sm text-brand hover:underline">
-              See the limits →
-            </Link>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold">Jev next to an LLM</h2>
-            <p className="mt-2 max-w-[46ch] text-sm leading-relaxed text-muted-foreground">
-              The same state and the same questions, sent to both at the same moment from the same
-              server. You see both answers, both latencies and both costs — and what the comparison
-              cannot tell you.
-            </p>
-            <Link href="/compare" className="mt-3 inline-block text-sm text-brand hover:underline">
-              How we measure →
-            </Link>
-          </div>
-        </section>
-
-        <p className="mt-12 text-xs text-muted-foreground">{SITE.disclaimer}</p>
       </main>
 
       <Footer />

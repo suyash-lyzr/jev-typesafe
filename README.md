@@ -41,10 +41,12 @@ off in development, and every live run is refused in production (it fails closed
    - `IP_HASH_SALT` (any long random string)
    - `NEXT_PUBLIC_SITE_URL` (the public URL)
 3. Optional variables:
-   - To turn on the comparison: `OPENAI_API_KEY`, then confirm the model id and prices on
-     OpenAI's pricing page and set `OPENAI_COMPARE_MODEL`, `OPENAI_IN_PER_M`,
-     `OPENAI_OUT_PER_M` and `OPENAI_PRICE_CONFIRMED_ON`. Until the last one is set, the
-     site labels the price "assumed".
+   - To turn on the comparison: `OPENAI_API_KEY`. Visitors pick from the eight models in
+     `lib/llm-models.ts`, whose prices were checked on OpenAI's pricing page on 2026-09-22.
+     `OPENAI_COMPARE_MODEL` sets the default (gpt-5.6-terra). Adding a model means checking
+     its price and that it accepts the request (Chat Completions with a strict JSON schema).
+   - `COMPARE_DAY`: free comparisons per network per UTC day (default 5). A comparison
+     that never reached OpenAI is handed back.
    - `ALLOWED_ORIGINS`, for extra domains serving this same app.
    - `FRAME_ANCESTORS`, to allow embedding in an iframe.
    - `NEXT_PUBLIC_ISSUES_URL`, which turns on the "Report drift" links.

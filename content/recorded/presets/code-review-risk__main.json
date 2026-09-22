@@ -1,0 +1,77 @@
+{
+  "preset": "code-review-risk",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:26:27.501Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "PR #4821 \"Reduce login friction\"\nFiles: auth/session.ts, auth/tokens.ts, config/auth.yaml (+38 −61)\nDescription: Users complain about being logged out. This raises access-token lifetime from 15 minutes to 30 days and removes refresh-token rotation, which was causing race conditions. No test changes; existing tests still pass.",
+    "model": "jev-latest",
+    "questions": {
+      "area": {
+        "type": "choice",
+        "instructions": "Which area of the system does this change mainly touch?",
+        "criteria": {
+          "auth_security": "Authentication, sessions, permissions or secrets",
+          "payments": "Billing, charges or financial data",
+          "ui": "Visual or front-end behaviour only",
+          "infra": "Build, deploy, config or infrastructure",
+          "docs": "Documentation or comments only",
+          "other": "Another part of the system"
+        }
+      },
+      "needs_senior_review": {
+        "type": "noul",
+        "instructions": "Should a senior engineer review this before it merges?"
+      },
+      "risk": {
+        "type": "score",
+        "instructions": "How risky is merging this change as described?",
+        "criteria": [
+          "Low: cosmetic or well covered by tests",
+          "Moderate: real behaviour change with some test coverage",
+          "High: security or data impact with little test coverage"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "area": {
+      "type": "choice",
+      "choice": "auth_security",
+      "confidence": 1,
+      "probabilities": {
+        "payments": 0,
+        "ui": 0,
+        "other": 0,
+        "docs": 0,
+        "auth_security": 1,
+        "infra": 0
+      }
+    },
+    "needs_senior_review": {
+      "type": "noul",
+      "noul": 0.95
+    },
+    "risk": {
+      "type": "score",
+      "score": 2,
+      "confidence": 1,
+      "legend": {
+        "0": "Low: cosmetic or well covered by tests",
+        "1": "Moderate: real behaviour change with some test coverage",
+        "2": "High: security or data impact with little test coverage"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 1
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 548,
+    "output_tokens": 95
+  },
+  "costUsd": 0.000023016,
+  "clientMs": 303
+}

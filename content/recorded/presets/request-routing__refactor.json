@@ -1,0 +1,73 @@
+{
+  "preset": "request-routing",
+  "variant": "refactor",
+  "recordedAt": "2026-09-22T00:02:45.849Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "Can you convert our 400-line payments retry module from callbacks to async/await, keep the exponential backoff behaviour identical, and add unit tests for the three failure paths? The file is attached as retry.js.",
+    "model": "jev-latest",
+    "questions": {
+      "tier": {
+        "type": "choice",
+        "instructions": "What is the cheapest model tier that can handle this request well?",
+        "criteria": {
+          "small": "A small, fast model: a fact, a lookup, a one-line rewrite or a yes/no",
+          "standard": "A standard model: drafting, summarising or explaining a page of material",
+          "frontier": "The strongest model: long multi-step reasoning or a large, careful code change",
+          "unclear": "Too vague to size up without asking the user first"
+        }
+      },
+      "effort": {
+        "type": "score",
+        "instructions": "How much work does a good answer take?",
+        "criteria": [
+          "One step: the answer fits in a sentence",
+          "A few steps: a paragraph to a page of output",
+          "Many interdependent steps that must all be right"
+        ]
+      },
+      "costly_mistake": {
+        "type": "noul",
+        "instructions": "Would a wrong answer be costly for the user?"
+      }
+    }
+  },
+  "answers": {
+    "tier": {
+      "type": "choice",
+      "choice": "frontier",
+      "confidence": 0.94,
+      "probabilities": {
+        "small": 0,
+        "standard": 0.05,
+        "unclear": 0,
+        "frontier": 0.95
+      }
+    },
+    "effort": {
+      "type": "score",
+      "score": 2,
+      "confidence": 1,
+      "legend": {
+        "0": "One step: the answer fits in a sentence",
+        "1": "A few steps: a paragraph to a page of output",
+        "2": "Many interdependent steps that must all be right"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 1
+      }
+    },
+    "costly_mistake": {
+      "type": "noul",
+      "noul": 0.8
+    }
+  },
+  "usage": {
+    "input_tokens": 526,
+    "output_tokens": 85
+  },
+  "costUsd": 0.000022092,
+  "clientMs": 322
+}

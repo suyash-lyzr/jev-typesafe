@@ -1,0 +1,81 @@
+{
+  "preset": "resume-match",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:26:28.191Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "job": "Senior Backend Engineer. Must have: 5+ years of backend work, production Go, PostgreSQL at scale. Nice to have: Kafka, on-call experience.",
+      "resume": "Ana Silva. 7 years backend. 2021–now: Senior Engineer at Fleetwise, built the Go order service handling 3k req/s on PostgreSQL (partitioning, query tuning), led a team of 4, weekly on-call. 2018–2021: Python/Django developer at an agency."
+    },
+    "model": "jev-latest",
+    "questions": {
+      "meets_must_haves": {
+        "type": "noul",
+        "instructions": "Does the candidate meet every must-have in the job description?"
+      },
+      "seniority": {
+        "type": "choice",
+        "instructions": "What level does this candidate's experience suggest?",
+        "criteria": {
+          "junior": "Under 2 years, mostly guided work",
+          "mid": "2 to 5 years, owns features end to end",
+          "senior": "5+ years, leads projects and mentors",
+          "staff": "Sets technical direction across teams",
+          "unclear": "The résumé does not show enough to tell"
+        }
+      },
+      "relevance": {
+        "type": "score",
+        "instructions": "How relevant is the candidate's experience to this role?",
+        "criteria": [
+          "Unrelated field or stack",
+          "Adjacent: similar work in a different stack or domain",
+          "Relevant: the same kind of work in a similar stack",
+          "Directly relevant: this exact job, done well, recently"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "meets_must_haves": {
+      "type": "noul",
+      "noul": 0.95
+    },
+    "seniority": {
+      "type": "choice",
+      "choice": "senior",
+      "confidence": 1,
+      "probabilities": {
+        "staff": 0,
+        "junior": 0,
+        "unclear": 0,
+        "senior": 1,
+        "mid": 0
+      }
+    },
+    "relevance": {
+      "type": "score",
+      "score": 2.97,
+      "confidence": 0.97,
+      "legend": {
+        "0": "Unrelated field or stack",
+        "1": "Adjacent: similar work in a different stack or domain",
+        "2": "Relevant: the same kind of work in a similar stack",
+        "3": "Directly relevant: this exact job, done well, recently"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 0.03,
+        "3": 0.97
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 612,
+    "output_tokens": 95
+  },
+  "costUsd": 0.000025704,
+  "clientMs": 289
+}

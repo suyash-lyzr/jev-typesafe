@@ -1,0 +1,84 @@
+{
+  "preset": "game-npc",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:40:03.595Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "npc": "Guard captain",
+      "health": "23 / 100",
+      "ammo": 3,
+      "enemy": "Player at full health with a shotgun, 14 m away and closing",
+      "cover_available": true,
+      "allies_nearby": 0
+    },
+    "model": "jev-latest",
+    "questions": {
+      "action": {
+        "type": "choice",
+        "instructions": "What should the NPC do next?",
+        "criteria": {
+          "attack": "Engage the player",
+          "take_cover": "Move behind cover",
+          "retreat": "Fall back out of range",
+          "reload": "Reload the weapon",
+          "call_backup": "Radio for help",
+          "other": "Something else"
+        }
+      },
+      "in_danger": {
+        "type": "noul",
+        "instructions": "Is the NPC in immediate danger of being defeated?"
+      },
+      "aggression": {
+        "type": "score",
+        "instructions": "How aggressive should the NPC be right now?",
+        "criteria": [
+          "Avoid the fight",
+          "Hold position and defend",
+          "Press the attack"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "action": {
+      "type": "choice",
+      "choice": "take_cover",
+      "confidence": 0.86,
+      "probabilities": {
+        "retreat": 0.07,
+        "call_backup": 0.03,
+        "other": 0,
+        "reload": 0,
+        "take_cover": 0.89,
+        "attack": 0.01
+      }
+    },
+    "in_danger": {
+      "type": "noul",
+      "noul": 0.92
+    },
+    "aggression": {
+      "type": "score",
+      "score": 0.41,
+      "confidence": 0.38,
+      "legend": {
+        "0": "Avoid the fight",
+        "1": "Hold position and defend",
+        "2": "Press the attack"
+      },
+      "probabilities": {
+        "0": 0.6,
+        "1": 0.4,
+        "2": 0
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 503,
+    "output_tokens": 97
+  },
+  "costUsd": 0.000021126,
+  "clientMs": 293
+}

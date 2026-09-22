@@ -1,0 +1,74 @@
+{
+  "preset": "tool-selection",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:39:58.475Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "agent": "Sales assistant",
+      "tools": [
+        "web_search",
+        "crm_lookup",
+        "calculator",
+        "python",
+        "email",
+        "calendar"
+      ],
+      "user_request": "What is the total value of Acme Corp's open deals, and when did we last email their CFO?"
+    },
+    "model": "jev-latest",
+    "questions": {
+      "first_tool": {
+        "type": "choice",
+        "instructions": "Which tool should the agent call first?",
+        "criteria": {
+          "web_search": "Search the public web",
+          "crm_lookup": "Look up accounts, deals and contacts in the CRM",
+          "calculator": "Do arithmetic",
+          "python": "Run code on data",
+          "email": "Read or send email",
+          "calendar": "Read or change the calendar",
+          "other": "No tool fits"
+        }
+      },
+      "multiple_tools": {
+        "type": "noul",
+        "instructions": "Will answering the request take more than one tool call?"
+      },
+      "side_effects": {
+        "type": "noul",
+        "instructions": "Would answering the request change anything outside this conversation?"
+      }
+    }
+  },
+  "answers": {
+    "first_tool": {
+      "type": "choice",
+      "choice": "crm_lookup",
+      "confidence": 1,
+      "probabilities": {
+        "python": 0,
+        "crm_lookup": 1,
+        "calculator": 0,
+        "web_search": 0,
+        "email": 0,
+        "other": 0,
+        "calendar": 0
+      }
+    },
+    "multiple_tools": {
+      "type": "noul",
+      "noul": 0.9
+    },
+    "side_effects": {
+      "type": "noul",
+      "noul": 0.16
+    }
+  },
+  "usage": {
+    "input_tokens": 500,
+    "output_tokens": 106
+  },
+  "costUsd": 0.000021,
+  "clientMs": 327
+}

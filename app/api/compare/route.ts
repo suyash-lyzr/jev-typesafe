@@ -13,7 +13,10 @@ import type { Reservation } from '@/lib/guards'
 import { callJev } from '@/lib/upstream'
 import { callOpenAi, countEnumValues, MAX_COMPARE_ENUM_VALUES } from '@/lib/openai-compare'
 import type { CompareOutcome } from '@/lib/openai-compare'
-import { jevCostUsd, llmCostUsd, PRICING } from '@/lib/pricing'
+import { jevCostUsd, llmCostUsd, llmPricingFor } from '@/lib/pricing'
+import { callerKey } from '@/lib/guards'
+import { returnQuota, takeQuota, type CompareQuota } from '@/lib/compare-quota'
+import { LLM_MODELS, DEFAULT_LLM_MODEL, findLlmModel } from '@/lib/llm-models'
 import { preflight, budgetFailure, fail } from '@/lib/proxy'
 
 export const runtime = 'nodejs'
@@ -87,6 +90,35 @@ export async function POST(req: Request) {
   const pre = await preflight(req, CompareEnvelope, 'compare', compareOnlyError)
   if (pre instanceof Response) return pre
   const { request, estimatedTokens, serverStart } = pre
+
+  // The visitor's pick, or the configured default; only catalogued models, at catalogued prices.
+  const envDefault = findLlmModel(process.env.OPENAI_COMPARE_MODEL?.trim()) ? process.env.OPENAI_COMPARE_MODEL!.trim() : DEFAULT_LLM_MODEL
+  const llmId = pre.envelope.llmModel ?? envDefault
+  const pricingForModel = llmPricingFor(llmId)
+  if (!pricingForModel) {
+    return fail(
+      { error: 'validation', message: `Compare with one of: ${LLM_MODELS.map((m) => m.id).join(', ')}.` },
+      422
+    )
+  }
+
+  // The free quota: checked after every other refusal, so a request we would
+  // reject anyway never costs one.
+  const caller = callerKey(req.headers)
+  const taken = await takeQuota(caller)
+  if (!taken.ok) {
+    return fail(
+      {
+        error: 'rate_limited',
+        scope: 'quota',
+        message: `You've used your ${taken.quota.limit} free comparisons for today. They reset at 00:00 UTC. Jev-only runs still work.`,
+        resetsAt: taken.quota.resetsAt,
+        quota: taken.quota,
+      },
+      429
+    )
+  }
+  let quota: CompareQuota = taken.quota
   const questionCount = Object.keys(request.questions).length
   const callsDeadline = Math.min(pre.deadline, serverStart + CALLS_BUDGET_MS)
 
@@ -95,14 +127,14 @@ export async function POST(req: Request) {
     return fail({ error: 'upstream_auth', message: 'Jev Lab is missing its TypeSafe API key.' }, 500)
   }
   const openaiKey = process.env.OPENAI_API_KEY
-  const llmPricing = PRICING.llm
+  const llmPricing = pricingForModel
 
   const jevReservation = await reserveJevSpend(estimatedTokens)
   if (!jevReservation.ok) return budgetFailure(jevReservation)
 
   // Reserve the LLM side before either call goes out. If it is over budget,
   // the Jev half still runs and the tab says why the other half did not.
-  const llmReservation: Reservation | null = openaiKey ? await reserveOpenAiSpend(estimatedTokens) : null
+  const llmReservation: Reservation | null = openaiKey ? await reserveOpenAiSpend(estimatedTokens, llmPricing) : null
   const llmCanRun = Boolean(openaiKey && llmReservation?.ok)
 
   const [jevSettled, llmSettled] = await Promise.allSettled([
@@ -119,6 +151,11 @@ export async function POST(req: Request) {
     llmReservation?.ok && llm && (llm.promptTokens > 0 || llm.completionTokens > 0)
       ? llmCostUsd(llm.promptTokens, llm.completionTokens, llmPricing)
       : 0
+
+  // Hand the comparison back when OpenAI never did any work: no key, no
+  // budget, or a rejection before inference. A visitor should not lose one of
+  // their five to our configuration.
+  if (!llm || (!llm.ok && !llm.mayHaveBilled)) quota = await returnQuota(caller)
 
   function settleLlm(): Promise<unknown> {
     if (!llmReservation?.ok) return Promise.resolve()
@@ -206,6 +243,7 @@ export async function POST(req: Request) {
       costUsd: jevCostUsd(usage.input_tokens),
       replay: false,
       compare,
+      quota,
     },
     { headers: { 'Cache-Control': 'no-store' } }
   )

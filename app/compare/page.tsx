@@ -1,7 +1,12 @@
 import type { Metadata } from 'next'
 import { PageShell } from '@/components/layout/chrome'
+import { Gauge, MessageSquareOff, Receipt, Scale, Tag, Target, Timer, TrendingUp } from 'lucide-react'
 import { LaunchButton } from '@/components/launch-button'
+import { Race } from '@/components/visuals/visuals'
+import { IconCard } from '@/components/visuals/icon-card'
 import { PRICING } from '@/lib/pricing'
+import { LIMITS } from '@/lib/guards'
+import { LLM_MODELS, LLM_PRICES_CHECKED_ON, LLM_PRICES_SOURCE } from '@/lib/llm-models'
 import { SITE } from '@/lib/site'
 
 export const metadata: Metadata = {
@@ -13,148 +18,144 @@ export const metadata: Metadata = {
 const TRY = [
   { preset: 'first-run', label: 'First run · Stripe ticket' },
   { preset: 'support-triage', variant: 'ambiguous', label: 'Support triage · ambiguous' },
-  { preset: 'model-routing', label: 'Model routing' },
+  { preset: 'model-routing', label: 'Intent routing' },
   { preset: 'resume-screening', label: 'Resume screening' },
 ]
 
 export default function ComparePage() {
-  const llm = PRICING.llm
 
   return (
     <PageShell>
-      <h1 className="text-3xl font-semibold tracking-tight">Jev next to an LLM</h1>
-      <p className="mt-2 max-w-[62ch] text-base leading-relaxed text-muted-foreground">
-        The same state and the same questions, sent to Jev and to an OpenAI model at the same moment
-        from the same server — two separate calls, each timed on its own. You see both answers, both
-        latencies and both costs.
+      <h1 className="text-4xl font-semibold tracking-[-0.03em]">Jev next to an LLM</h1>
+      <p className="mt-3 max-w-[56ch] text-[17px] leading-relaxed text-muted-foreground">
+        One request, sent to Jev and your pick of {LLM_MODELS.length} OpenAI models at the same moment. Both answers, both
+        latencies, both costs. Each network gets {LIMITS.compare.perDay} free comparisons a day.
       </p>
 
-      <section className="mt-8 rounded-lg border border-border bg-card p-5">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Try it</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Each button opens the playground with the comparison on and runs it once. Comparisons are
-          capped tighter than plain runs, because they spend on two providers.
+      <section className="mt-8 flex flex-wrap items-center gap-2" aria-label="Run a comparison">
+        {TRY.map((t) => (
+          <LaunchButton key={t.label} preset={t.preset} variant={t.variant} mode="compare">
+            {t.label}
+          </LaunchButton>
+        ))}
+        <span className="text-xs text-faint">Opens the playground and runs once.</span>
+      </section>
+
+      <section className="mt-10 rounded-[16px] border border-border bg-card p-6 shadow-card" aria-labelledby="race-heading">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 id="race-heading" className="text-[17px] font-semibold">Same question, three models</h2>
+          <span className="text-[12px] text-faint">average latency · drawn to scale</span>
+        </div>
+        <Race
+          className="mt-5"
+          lanes={[
+            { label: 'jev-1.13.0', ms: 111, strong: true },
+            { label: 'gpt-5.4-mini', ms: 1410 },
+            { label: 'gpt-5.5 · reasoning', ms: 11122 },
+          ]}
+        />
+        <p className="mt-4 text-[11.5px] text-faint">
+          TypeSafe&rsquo;s consistency cookbook, 2026-09-11, 15 runs: Jev averaged 111 ms; the others are its 12.7× and
+          100.2× slowdowns applied to that. Theirs, not ours — run your own below.
         </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {TRY.map((t) => (
-            <LaunchButton key={t.label} preset={t.preset} variant={t.variant} mode="compare">
-              {t.label}
-            </LaunchButton>
+      </section>
+
+      <section className="mt-10" aria-labelledby="measure-heading">
+        <h2 id="measure-heading" className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
+          How we measure
+        </h2>
+        <ol className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { Icon: Timer, title: 'Same moment', body: 'Both calls leave one server function together.' },
+            { Icon: Gauge, title: 'Own stopwatch', body: 'Each side times its own call, body included.' },
+            { Icon: Tag, title: 'Real model id', body: 'Both sides report the model id that answered. The LLM uses Structured Outputs, no retries, its fastest reasoning setting.' },
+            { Icon: Receipt, title: 'List-price cost', body: 'Tokens × the prices below. Jev’s output is free.' },
+          ].map(({ Icon, title, body }, i) => (
+            <li key={title} className="relative">
+              <IconCard Icon={Icon} title={`${i + 1}. ${title}`} className="h-full">
+                {body}
+              </IconCard>
+            </li>
           ))}
+        </ol>
+      </section>
+
+      <section className="mt-10" aria-labelledby="cant-heading">
+        <h2 id="cant-heading" className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">
+          What one run can&rsquo;t tell you
+        </h2>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <IconCard Icon={Target} title="Accuracy">Agreeing isn&rsquo;t being right.</IconCard>
+          <IconCard Icon={Scale} title="Calibration">That takes many runs.</IconCard>
+          <IconCard Icon={TrendingUp} title="A trend">One run, one region, network included.</IconCard>
+          <IconCard Icon={MessageSquareOff} title="LLM confidence">A number it writes isn&rsquo;t a distribution.</IconCard>
         </div>
       </section>
 
-      <div className="mt-10 grid gap-8 md:grid-cols-2">
-        <section>
-          <h2 className="text-xl font-semibold">How we measure</h2>
-          <ul className="mt-3 space-y-2.5 text-sm leading-relaxed text-muted-foreground">
-            <li>
-              Both calls leave the same server function at the same moment, under{' '}
-              <code className="font-mono text-xs">Promise.allSettled</code>. Neither waits for the
-              other, and a failure on one side never blocks the other.
-            </li>
-            <li>
-              Each side is timed the same way: its own network call, including reading the response
-              body — not our serialisation, not the page render.
-            </li>
-            <li>
-              Jev: <code className="font-mono text-xs">POST /v1/systemone</code>. We print the
-              versioned model id from the response, never the alias we asked for.
-            </li>
-            <li>
-              The LLM: {llm.id} with Structured Outputs — a JSON schema built from your questions —
-              retries off, output capped, and the <em>fastest</em> reasoning setting the model offers.
-              Slowing it down would make the multiplier meaningless.
-            </li>
-            <li>
-              Cost is tokens × the list prices below. Output tokens are free on Jev&rsquo;s side, so
-              only its input is charged.
-            </li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold">What it cannot say</h2>
-          <ul className="mt-3 space-y-2.5 text-sm leading-relaxed text-muted-foreground">
-            <li>
-              <strong className="text-foreground">Nothing about accuracy.</strong> Neither side is
-              graded against a right answer. Agreement marks say the two matched, not that either was
-              correct.
-            </li>
-            <li>
-              <strong className="text-foreground">Nothing about calibration.</strong> That is a
-              property of many predictions; one run cannot show it.
-            </li>
-            <li>
-              <strong className="text-foreground">It is one run.</strong> Network included, from one
-              region, on one request. A different hour gives a different number.
-            </li>
-            <li>
-              <strong className="text-foreground">We never ask the LLM for a confidence.</strong> A
-              number a model writes into its JSON is not a distribution it computed, and putting one
-              beside Jev&rsquo;s confidence would imply they mean the same thing.
-            </li>
-            <li>
-              <strong className="text-foreground">A small model is not a frontier model.</strong>{' '}
-              The published figures below measured different opponents under different conditions.
-            </li>
-          </ul>
-        </section>
-      </div>
-
-      <section className="mt-10">
-        <h2 className="text-xl font-semibold">Other people&rsquo;s numbers, with their conditions</h2>
+      <details className="group mt-10 rounded-[16px] border border-border bg-card px-5 py-4 shadow-card">
+        <summary className="flex cursor-pointer list-none items-center justify-between font-display text-[15px] font-semibold [&::-webkit-details-marker]:hidden">
+          Other people&rsquo;s numbers
+          <span className="text-xs font-normal text-faint group-open:hidden">show</span>
+        </summary>
         <ul className="mt-3 max-w-[70ch] space-y-3 text-sm leading-relaxed text-muted-foreground">
           <li>
-            <strong className="text-foreground">TypeSafe&rsquo;s own claim:</strong> 193.6× faster and
-            444.6× cheaper, &ldquo;based on workflows for System One tasks&rdquo;, from evaluations run
-            by their own team. The{' '}
+            <strong className="text-foreground">TypeSafe:</strong> 193.6× faster and 444.6× cheaper on
+            their own System One workflows; 40–200× faster as the real-world range, and 70–500 ms end to
+            end, per the{' '}
             <a className="text-brand hover:underline" href={SITE.links.launchPost}>
               launch post
-            </a>{' '}
-            calls this the higher end of real-world gains and gives 40–200× faster as the range. The
-            same post puts Jev&rsquo;s end-to-end response time at 70–500 ms.
+            </a>
+            .
           </li>
           <li>
-            <strong className="text-foreground">A community test:</strong> the{' '}
+            <strong className="text-foreground">Community:</strong> the{' '}
             <a className="text-brand hover:underline" href={SITE.links.communityBenchmark}>
-              jev-test harness on GitHub
+              jev-test harness
             </a>{' '}
-            ran 17 clear-cut cases once and found Jev about 3× faster than GPT-5.6 Terra and 7.5×
-            faster than Claude Opus 5, at about 35× and 190× lower cost, with all three getting every
-            case right. Its authors call it a single run on a small, easy set.
+            found Jev about 3× faster than GPT-5.6 Terra and 7.5× faster than Claude Opus 5, at about
+            35× and 190× lower cost, on 17 easy cases run once.
           </li>
           <li>
-            <strong className="text-foreground">TypeSafe&rsquo;s consistency cookbook</strong>{' '}
-            (2026-09-11, a 14-Noul rubric over 15 runs, their own price assumptions): gpt-5.4-mini at
-            temperature 0 was 12.7× slower and 25.6× costlier than Jev; gpt-5.5 with reasoning was
-            100.2× slower and 778.9× costlier. Jev averaged 111 ms and $0.000043 per call.
+            <strong className="text-foreground">TypeSafe&rsquo;s consistency cookbook</strong> (2026-09-11,
+            15 runs): gpt-5.4-mini was 12.7× slower and 25.6× costlier; gpt-5.5 with reasoning 100.2×
+            slower and 778.9× costlier. Jev averaged 111 ms.
           </li>
         </ul>
-        <p className="mt-3 max-w-[70ch] text-xs text-muted-foreground">
-          These are theirs, not ours, and none of them is what this page measures.
-        </p>
-      </section>
+        <p className="mt-3 text-xs text-faint">Theirs, not ours, and measured under their conditions.</p>
+      </details>
 
-      <section className="mt-10 rounded-lg border border-border bg-card p-5">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Prices used</h2>
-        <table className="mt-3 w-full text-sm">
+      <section className="mt-4 overflow-hidden rounded-[16px] border bg-card shadow-card">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 px-5 pb-2 pt-4">
+          <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-faint">Prices used · per 1M tokens</h2>
+          <a className="text-[11.5px] text-faint hover:text-foreground" href={LLM_PRICES_SOURCE} target="_blank" rel="noreferrer">
+            OpenAI pricing, checked {LLM_PRICES_CHECKED_ON} ↗
+          </a>
+        </div>
+        <table className="w-full text-sm">
           <caption className="sr-only">List prices used for the cost figures</caption>
+          <thead>
+            <tr className="border-y border-border bg-muted/40 text-left font-mono text-[10.5px] uppercase tracking-[0.1em] text-faint">
+              <th scope="col" className="px-5 py-2 font-normal">Model</th>
+              <th scope="col" className="px-5 py-2 font-normal">Input</th>
+              <th scope="col" className="px-5 py-2 font-normal">Output</th>
+              <th scope="col" className="hidden px-5 py-2 font-normal sm:table-cell">Note</th>
+            </tr>
+          </thead>
           <tbody className="divide-y divide-border">
-            <tr>
-              <th scope="row" className="py-2 text-left font-mono text-xs font-normal">jev-1.13.0</th>
-              <td className="py-2 font-mono text-xs tabular">${PRICING.jev.inPerM} / 1M input</td>
-              <td className="py-2 font-mono text-xs tabular">output free</td>
-              <td className="py-2 text-xs text-muted-foreground">checked {PRICING.jev.checkedOn}</td>
+            <tr className="bg-pastel-1/60">
+              <th scope="row" className="px-5 py-2 text-left font-mono text-xs font-medium">jev-1.13.0</th>
+              <td className="px-5 py-2 font-mono text-xs tabular">${PRICING.jev.inPerM}</td>
+              <td className="px-5 py-2 font-mono text-xs tabular">free</td>
+              <td className="hidden px-5 py-2 text-xs text-muted-foreground sm:table-cell">TypeSafe, checked {PRICING.jev.checkedOn}</td>
             </tr>
-            <tr>
-              <th scope="row" className="py-2 text-left font-mono text-xs font-normal">{llm.id}</th>
-              <td className="py-2 font-mono text-xs tabular">${llm.inPerM} / 1M input</td>
-              <td className="py-2 font-mono text-xs tabular">${llm.outPerM} / 1M output</td>
-              <td className="py-2 text-xs text-muted-foreground">
-                {llm.confirmedOn ? `checked ${llm.confirmedOn}` : 'assumed — TypeSafe’s cookbook figure, not yet confirmed'}
-              </td>
-            </tr>
+            {LLM_MODELS.map((m) => (
+              <tr key={m.id}>
+                <th scope="row" className="px-5 py-2 text-left font-mono text-xs font-normal">{m.id}</th>
+                <td className="px-5 py-2 font-mono text-xs tabular">${m.inPerM}</td>
+                <td className="px-5 py-2 font-mono text-xs tabular">${m.outPerM}</td>
+                <td className="hidden px-5 py-2 text-xs text-muted-foreground sm:table-cell">{m.note}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </section>

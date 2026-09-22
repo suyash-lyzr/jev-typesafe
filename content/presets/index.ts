@@ -17,11 +17,15 @@ import { bugSeverity } from './bug-severity'
 import { resumeScreening } from './resume-screening'
 import { dateExtraction } from './date-extraction'
 import { limitsPresets } from './limits'
+import { useCases } from './use-cases'
+
+export { USE_CASE_SLUGS, USE_CASE_GROUPS } from './use-cases'
 
 export * from './types'
 
-/** Gallery order: the first-run request first, then by how much setup each needs. */
+/** Gallery order: the everyday use cases first, then the docs' own examples, then limits. */
 const authored: Preset[] = [
+  ...useCases,
   firstRun,
   supportTriage,
   voiceBanking,
@@ -102,7 +106,7 @@ export function presetToLoad(
     stateMode: typeof variant.state === 'string' ? 'text' : 'json',
     questions,
     policy,
-    title: `${preset.title} · ${variant.label}`,
+    title: preset.variants.length > 1 ? `${preset.title} · ${variant.label}` : preset.title,
     presetId: preset.slug,
     variantId: variant.id,
     compare: opts.compare,

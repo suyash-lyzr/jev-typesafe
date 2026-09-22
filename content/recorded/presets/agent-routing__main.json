@@ -1,0 +1,79 @@
+{
+  "preset": "agent-routing",
+  "variant": "main",
+  "recordedAt": "2026-09-22T00:08:33.868Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "User: Pull Q3 revenue by region from the warehouse, check it against the latest analyst forecasts published online, and draft a short email to our CFO explaining where we beat or missed.",
+    "model": "jev-latest",
+    "questions": {
+      "agent": {
+        "type": "choice",
+        "instructions": "Which specialist agent should handle this request?",
+        "criteria": {
+          "research": "Finds and summarises information from documents",
+          "coding": "Writes or fixes code",
+          "web_search": "Needs fresh information from the public web",
+          "database": "Needs a query against our internal data warehouse",
+          "finance": "Financial analysis, forecasting or accounting",
+          "support": "Help with our own product or an account problem",
+          "other": "None of these agents fits"
+        }
+      },
+      "needs_several_agents": {
+        "type": "noul",
+        "instructions": "Does the request need more than one of the specialist agents to finish?"
+      },
+      "complexity": {
+        "type": "score",
+        "instructions": "How much work is this request for the agent?",
+        "criteria": [
+          "A single lookup",
+          "A few steps with one data source",
+          "Many steps across several sources"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "agent": {
+      "type": "choice",
+      "choice": "finance",
+      "confidence": 0.92,
+      "probabilities": {
+        "research": 0,
+        "finance": 0.9400000000000001,
+        "database": 0.06,
+        "coding": 0,
+        "other": 0,
+        "support": 0,
+        "web_search": 0
+      }
+    },
+    "needs_several_agents": {
+      "type": "noul",
+      "noul": 0.86
+    },
+    "complexity": {
+      "type": "score",
+      "score": 1.98,
+      "confidence": 0.97,
+      "legend": {
+        "0": "A single lookup",
+        "1": "A few steps with one data source",
+        "2": "Many steps across several sources"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.02,
+        "2": 0.98
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 521,
+    "output_tokens": 102
+  },
+  "costUsd": 0.000021882,
+  "clientMs": 1192
+}

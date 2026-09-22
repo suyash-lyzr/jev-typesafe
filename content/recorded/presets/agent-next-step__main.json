@@ -1,0 +1,83 @@
+{
+  "preset": "agent-next-step",
+  "variant": "main",
+  "recordedAt": "2026-09-22T00:08:35.419Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "goal": "Find the cheapest direct flight Berlin → Lisbon on 14 October, under €150.",
+      "user_preferences": "No departures before 07:00.",
+      "steps_so_far": [
+        "Searched every airline: only 3 direct flights exist that day.",
+        "€129, departs 06:10 — under budget, but before 07:00.",
+        "€164, departs 09:45 and €171, departs 13:20 — after 07:00, but over €150."
+      ]
+    },
+    "model": "jev-latest",
+    "questions": {
+      "next_action": {
+        "type": "choice",
+        "instructions": "What should the agent do next?",
+        "criteria": {
+          "search_again": "Search again: there may be options the agent has not looked at yet",
+          "ask_user": "Ask the user which requirement to relax, because no option meets them all",
+          "book": "Book the option that meets every requirement",
+          "answer": "Report a flight that meets every requirement",
+          "other": "Something else"
+        }
+      },
+      "goal_met": {
+        "type": "noul",
+        "instructions": "Do the steps so far fully satisfy the user's goal, including every stated preference?"
+      },
+      "progress": {
+        "type": "score",
+        "instructions": "How close is the agent to finishing the task?",
+        "criteria": [
+          "Just started",
+          "Found candidates that need checking",
+          "A valid answer is ready"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "next_action": {
+      "type": "choice",
+      "choice": "ask_user",
+      "confidence": 0.98,
+      "probabilities": {
+        "ask_user": 0.99,
+        "answer": 0,
+        "book": 0,
+        "other": 0,
+        "search_again": 0.01
+      }
+    },
+    "goal_met": {
+      "type": "noul",
+      "noul": 0.03
+    },
+    "progress": {
+      "type": "score",
+      "score": 1.04,
+      "confidence": 0.92,
+      "legend": {
+        "0": "Just started",
+        "1": "Found candidates that need checking",
+        "2": "A valid answer is ready"
+      },
+      "probabilities": {
+        "0": 0.01,
+        "1": 0.95,
+        "2": 0.04
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 605,
+    "output_tokens": 87
+  },
+  "costUsd": 0.00002541,
+  "clientMs": 890
+}

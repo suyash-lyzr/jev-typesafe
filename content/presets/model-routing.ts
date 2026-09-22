@@ -3,6 +3,9 @@ import type { Preset } from './types'
 /**
  * Two questions decide which handler pays for the rest of the work.
  *
+ * Titled "Intent routing" after the docs pattern it comes from; the slug stays
+ * `model-routing` so existing share links and recordings keep working.
+ *
  * The intent-routing pattern puts a cheap classifier in front of everything
  * expensive. One intent goes to a database lookup with no model involved; two
  * go to specialist LLMs loaded with different context; one goes to a human
@@ -27,9 +30,9 @@ import type { Preset } from './types'
  */
 export const modelRouting: Preset = {
   slug: 'model-routing',
-  title: 'Model routing',
+  title: 'Intent routing',
   category: 'support',
-  teaches: 'Classify once, then let thresholds in your code choose the handler.',
+  teaches: 'Send each customer message to the right handler — a lookup, a specialist LLM or a person — using thresholds in your code.',
   patterns: ['intent routing', 'confidence routing'],
 
   questions: {

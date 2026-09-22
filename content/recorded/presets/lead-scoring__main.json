@@ -1,0 +1,85 @@
+{
+  "preset": "lead-scoring",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:26:23.995Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": {
+      "name": "Daniel Okafor",
+      "title": "VP, Customer Experience",
+      "company": "Brightline Insurance",
+      "employees": 1200,
+      "industry": "Insurance",
+      "signup_note": "We handle about 40k support emails a month and want to auto-route and prioritise them. I own the CX budget and we plan to pick a vendor this quarter."
+    },
+    "model": "jev-latest",
+    "questions": {
+      "icp_fit": {
+        "type": "score",
+        "instructions": "How well does this company match our ideal customer: mid-size or larger B2B teams that run customer support at volume?",
+        "criteria": [
+          "Not a business, or clearly outside our market",
+          "A business, but too small or in a poor-fit industry",
+          "A reasonable fit with some gaps in size or use case",
+          "A strong fit on size, industry and use case"
+        ]
+      },
+      "buying_stage": {
+        "type": "choice",
+        "instructions": "Where is this lead in their buying process?",
+        "criteria": {
+          "researching": "Learning about the category, no project yet",
+          "evaluating": "Comparing vendors for a defined project",
+          "ready_to_buy": "Has budget and a timeline and wants to talk terms",
+          "not_a_buyer": "A student, job seeker, competitor or vendor",
+          "unclear": "Not enough information to tell"
+        }
+      },
+      "decision_maker": {
+        "type": "noul",
+        "instructions": "Can the person who signed up approve a purchase on their own?"
+      }
+    }
+  },
+  "answers": {
+    "icp_fit": {
+      "type": "score",
+      "score": 2.99,
+      "confidence": 0.99,
+      "legend": {
+        "0": "Not a business, or clearly outside our market",
+        "1": "A business, but too small or in a poor-fit industry",
+        "2": "A reasonable fit with some gaps in size or use case",
+        "3": "A strong fit on size, industry and use case"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 0.01,
+        "3": 0.99
+      }
+    },
+    "buying_stage": {
+      "type": "choice",
+      "choice": "evaluating",
+      "confidence": 0.66,
+      "probabilities": {
+        "researching": 0,
+        "unclear": 0,
+        "evaluating": 0.73,
+        "not_a_buyer": 0,
+        "ready_to_buy": 0.27
+      }
+    },
+    "decision_maker": {
+      "type": "noul",
+      "noul": 0.7
+    }
+  },
+  "usage": {
+    "input_tokens": 603,
+    "output_tokens": 98
+  },
+  "costUsd": 0.000025326,
+  "clientMs": 363
+}

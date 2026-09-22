@@ -177,6 +177,8 @@ export const ProxyEnvelope = z.object({
 
 export const CompareEnvelope = ProxyEnvelope.extend({
   feature: z.literal('compare').default('compare'),
+  /** One of LLM_MODELS; the server refuses anything else. Omitted = the default. */
+  llmModel: z.string().max(64).optional(),
 })
 
 // ---------------------------------------------------------------------------
@@ -264,10 +266,20 @@ export interface RunError {
   /** Dotted path to the offending field when the upstream names one. */
   path?: string[]
   retryAfterSec?: number
-  scope?: 'minute' | 'day' | 'budget' | 'global'
+  scope?: 'minute' | 'day' | 'budget' | 'global' | 'quota'
   resetsAt?: string
   retries?: number
   raw?: unknown
+  /** Comparison quota after this request (only on /api/compare responses). */
+  quota?: CompareQuota
+}
+
+/** A network's free comparisons for the current UTC day. */
+export interface CompareQuota {
+  limit: number
+  used: number
+  remaining: number
+  resetsAt: string
 }
 
 // ---------------------------------------------------------------------------
@@ -275,9 +287,33 @@ export interface RunError {
 // ---------------------------------------------------------------------------
 
 /** Rough token estimate for the editor's live readout. Always shown with a ≈. */
+/**
+ * A deliberately low estimate (characters ÷ 4). Used only where an estimate
+ * decides whether to *block* a request, so a borderline valid one is never
+ * refused here; TypeSafe has the final say. Not for display.
+ */
 export function estimateTokens(value: unknown): number {
   const text = typeof value === 'string' ? value : (JSON.stringify(value ?? '') ?? '')
   return Math.ceil(text.length / 4)
+}
+
+/**
+ * What Jev actually bills, approximated. Fitted on 2026-09-22 against 71 of
+ * our recorded responses (input_tokens vs the characters sent): about 0.38
+ * tokens per character of state and questions, plus about 180 tokens of fixed
+ * overhead per request. Median error 6%, 90th percentile 14%.
+ */
+export const TOKENS_PER_CHAR = 0.38
+export const REQUEST_OVERHEAD_TOKENS = 180
+
+export function approxTokens(value: unknown): number {
+  const text = typeof value === 'string' ? value : (JSON.stringify(value ?? '') ?? '')
+  return Math.round(text.length * TOKENS_PER_CHAR)
+}
+
+/** The whole request, as Jev will count it: state + questions + fixed overhead. */
+export function approxRequestTokens(state: unknown, questions: unknown): number {
+  return approxTokens(state) + approxTokens(questions) + REQUEST_OVERHEAD_TOKENS
 }
 
 export function stateChars(state: State): number {

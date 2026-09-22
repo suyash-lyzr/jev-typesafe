@@ -1,0 +1,80 @@
+{
+  "preset": "viral-post",
+  "variant": "main",
+  "recordedAt": "2026-09-21T21:26:28.890Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "We deleted our most-requested feature last month.\n\nIt had 2,000 upvotes on our roadmap. Usage after launch: 3% of accounts. Support tickets it caused: 22% of the total.\n\nThe lesson: votes measure what people say, not what they do. Before you build the top-voted thing, ask 10 voters to show you the workaround they use today. If they have none, they will not use yours either.",
+    "model": "jev-latest",
+    "questions": {
+      "hook": {
+        "type": "choice",
+        "instructions": "What kind of hook does the first line use?",
+        "criteria": {
+          "contrarian": "Challenges a popular belief",
+          "story": "Opens a personal story",
+          "how_to": "Promises a practical method or list",
+          "news": "Reports something new",
+          "question": "Asks the reader a question",
+          "other": "A hook that fits none of these"
+        }
+      },
+      "clear_takeaway": {
+        "type": "noul",
+        "instructions": "Does the post leave the reader with one clear, concrete takeaway?"
+      },
+      "reach": {
+        "type": "score",
+        "instructions": "How far is this post likely to travel?",
+        "criteria": [
+          "Mostly ignored",
+          "A few reactions from existing followers",
+          "Shared within its niche",
+          "Likely to spread well beyond the author's followers"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "hook": {
+      "type": "choice",
+      "choice": "contrarian",
+      "confidence": 0.92,
+      "probabilities": {
+        "contrarian": 0.94,
+        "news": 0.03,
+        "other": 0,
+        "story": 0.03,
+        "how_to": 0,
+        "question": 0
+      }
+    },
+    "clear_takeaway": {
+      "type": "noul",
+      "noul": 0.93
+    },
+    "reach": {
+      "type": "score",
+      "score": 2.43,
+      "confidence": 0.54,
+      "legend": {
+        "0": "Mostly ignored",
+        "1": "A few reactions from existing followers",
+        "2": "Shared within its niche",
+        "3": "Likely to spread well beyond the author's followers"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0.01,
+        "2": 0.54,
+        "3": 0.45
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 573,
+    "output_tokens": 95
+  },
+  "costUsd": 0.000024066000000000003,
+  "clientMs": 297
+}

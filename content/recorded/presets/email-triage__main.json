@@ -1,0 +1,80 @@
+{
+  "preset": "email-triage",
+  "variant": "main",
+  "recordedAt": "2026-09-22T00:07:52.991Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "From: priya.raman@northwind-logistics.com\nSubject: Pricing for ~800 seats before our Q4 budget lock\n\nHi — we are consolidating three internal tools onto one platform and your product is on our shortlist. We would need roughly 800 seats across operations and finance, SSO, and an annual contract. Our budget locks on Friday, so could someone send enterprise pricing and a security questionnaire this week?\n\nThanks,\nPriya Raman, Director of IT",
+    "model": "jev-latest",
+    "questions": {
+      "email_type": {
+        "type": "choice",
+        "instructions": "What kind of email is this?",
+        "criteria": {
+          "sales_lead": "Someone interested in buying or expanding a purchase",
+          "support": "An existing customer asking for help with the product",
+          "invoice": "A bill, receipt or payment request",
+          "partnership": "A proposal to collaborate, sponsor or integrate",
+          "spam": "Unsolicited promotion or a mass-mailed pitch",
+          "other": "Anything that fits none of these"
+        }
+      },
+      "has_deadline": {
+        "type": "noul",
+        "instructions": "Does the sender mention a deadline in the next seven days?"
+      },
+      "deal_size": {
+        "type": "score",
+        "instructions": "How large is the opportunity described in the email?",
+        "criteria": [
+          "No purchase in view, or a single personal user",
+          "A small team, roughly 2 to 50 seats",
+          "A department, roughly 50 to 500 seats",
+          "A company-wide rollout of 500 seats or more"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "email_type": {
+      "type": "choice",
+      "choice": "sales_lead",
+      "confidence": 1,
+      "probabilities": {
+        "other": 0,
+        "partnership": 0,
+        "spam": 0,
+        "sales_lead": 1,
+        "support": 0,
+        "invoice": 0
+      }
+    },
+    "has_deadline": {
+      "type": "noul",
+      "noul": 0.96
+    },
+    "deal_size": {
+      "type": "score",
+      "score": 3,
+      "confidence": 1,
+      "legend": {
+        "0": "No purchase in view, or a single personal user",
+        "1": "A small team, roughly 2 to 50 seats",
+        "2": "A department, roughly 50 to 500 seats",
+        "3": "A company-wide rollout of 500 seats or more"
+      },
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 1
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 616,
+    "output_tokens": 100
+  },
+  "costUsd": 0.000025872,
+  "clientMs": 891
+}

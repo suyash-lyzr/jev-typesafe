@@ -1,0 +1,75 @@
+{
+  "preset": "insurance-claim",
+  "variant": "main",
+  "recordedAt": "2026-09-21T22:00:22.807Z",
+  "model": "jev-1.13.0",
+  "request": {
+    "state": "Policy HX-22817 (home). Water came through the kitchen ceiling on Sunday night after the upstairs bathroom pipe burst. A plumber has fixed the pipe. The ceiling plaster collapsed onto the floor and the dishwasher shorted. I have photos but no plumber invoice yet. My estimate is about £6,000.",
+    "model": "jev-latest",
+    "questions": {
+      "claim_type": {
+        "type": "choice",
+        "instructions": "What kind of claim is this?",
+        "criteria": {
+          "water_damage": "Escape of water, leaks or burst pipes",
+          "fire": "Fire or smoke damage",
+          "theft": "Burglary or theft",
+          "storm": "Storm, flood or weather damage",
+          "other": "Another kind of claim"
+        }
+      },
+      "missing_info": {
+        "type": "noul",
+        "instructions": "Is information needed to settle the claim still missing?"
+      },
+      "complexity": {
+        "type": "score",
+        "instructions": "How complex is this claim to settle?",
+        "criteria": [
+          "Simple: can be settled straight through",
+          "Needs a desk adjuster",
+          "Needs a field inspection or a specialist"
+        ]
+      }
+    }
+  },
+  "answers": {
+    "claim_type": {
+      "type": "choice",
+      "choice": "water_damage",
+      "confidence": 1,
+      "probabilities": {
+        "storm": 0,
+        "other": 0,
+        "fire": 0,
+        "theft": 0,
+        "water_damage": 1
+      }
+    },
+    "missing_info": {
+      "type": "noul",
+      "noul": 0.94
+    },
+    "complexity": {
+      "type": "score",
+      "score": 1.82,
+      "confidence": 0.74,
+      "legend": {
+        "0": "Simple: can be settled straight through",
+        "1": "Needs a desk adjuster",
+        "2": "Needs a field inspection or a specialist"
+      },
+      "probabilities": {
+        "0": 0.01,
+        "1": 0.16,
+        "2": 0.83
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 508,
+    "output_tokens": 89
+  },
+  "costUsd": 0.000021336000000000004,
+  "clientMs": 322
+}
