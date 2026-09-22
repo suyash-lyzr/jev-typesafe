@@ -153,6 +153,9 @@ export function StateEditor({ numbered = true }: { numbered?: boolean } = {}) {
           <>
             <StepLabel n={numbered ? 2 : undefined} id="state-heading">
               Edit the state
+              <span className="font-sans text-[13px] font-normal tracking-normal text-muted-foreground">
+                - The input your software gives Jev
+              </span>
             </StepLabel>
             <SegmentedControl
               value={stateMode}

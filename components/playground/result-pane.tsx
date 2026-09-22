@@ -149,8 +149,12 @@ function RunMeta() {
       </span>
       {lastRun.usage && <span className="hidden tabular xl:inline">{lastRun.usage.input_tokens} tok</span>}
       {lastRun.costUsd != null && (
-        <span className="tabular" title={`≈ ${perMillionRequests(lastRun.costUsd)} per million requests like this one`}>
-          {formatUsd(lastRun.costUsd)}
+        <span
+          className="shadow-card inline-flex items-center gap-1.5 rounded-full border bg-pastel-1 px-2.5 py-0.5 font-sans text-[12px] font-medium text-foreground"
+          title={`≈ ${perMillionRequests(lastRun.costUsd)} per million requests like this one`}
+        >
+          <span className="text-[10.5px] font-normal uppercase tracking-[0.08em] text-muted-foreground">cost</span>
+          <span className="font-mono tabular">{formatUsd(lastRun.costUsd)}</span>
         </span>
       )}
       {lastRun.timing.retries > 0 && <span>{lastRun.timing.retries} retry</span>}
