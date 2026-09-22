@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { ArrowUpRight, BookOpenCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
@@ -252,12 +253,17 @@ export function LimitSection({ spec }: { spec: LimitSpec }) {
         {spec.mode ? `Failure mode ${spec.mode} of 9 · ${MODE_NAMES[spec.mode]}` : 'Not one of the nine · from the Score page'}
       </p>
       <h2 className="mt-1 text-2xl font-semibold">{spec.heading}</h2>
-      <p className="mt-2 max-w-[70ch] text-sm leading-relaxed text-muted-foreground">
-        {spec.docs}{' '}
-        <a className="text-brand hover:underline" href={`https://${spec.source}`} target="_blank" rel="noreferrer">
-          Source ↗
-        </a>
-      </p>
+      <p className="mt-2 max-w-[70ch] text-sm leading-relaxed text-muted-foreground">{spec.docs}</p>
+      <a
+        className="shadow-card mt-3 inline-flex items-center gap-1.5 rounded-full border bg-pastel-4 px-3 py-1.5 text-[12.5px] font-medium text-foreground"
+        href={`https://${spec.source}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        <BookOpenCheck className="h-3.5 w-3.5" aria-hidden />
+        {spec.source}
+        <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+      </a>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         {variants.map((v) => (
