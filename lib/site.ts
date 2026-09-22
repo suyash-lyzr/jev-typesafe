@@ -9,8 +9,6 @@ export const SITE = {
   url: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
   /** Printed next to latency so nobody reads it as TypeSafe's compute time. */
   region: process.env.NEXT_PUBLIC_SITE_REGION ?? 'iad1',
-  disclaimer:
-    'Not affiliated with or endorsed by TypeSafe AI. "Jev" and "TypeSafe" are their names.',
   provenance:
     'Numbers here are single runs (live) or recorded from docs.typesafe.ai with model id and date. They are not benchmarks.',
   links: {

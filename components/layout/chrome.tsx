@@ -112,11 +112,9 @@ export function TopNav() {
             href={SITE.links.lyzr}
             target="_blank"
             rel="noreferrer"
-            className="hidden items-center gap-1.5 text-xs font-medium text-faint transition-opacity hover:opacity-80 sm:flex"
-            aria-label="By Lyzr (opens lyzr.ai)"
+            className="hidden items-center text-xs font-medium text-faint transition-opacity hover:opacity-80 sm:flex"
           >
-            by
-            <LyzrLogo variant="text" className="h-[13px] translate-y-[1.5px] opacity-80" alt="Lyzr" />
+            {SITE.byline}
           </a>
         </div>
 
@@ -157,16 +155,11 @@ export function TopNav() {
   )
 }
 
-export function Footer({ disclaimer = true }: { disclaimer?: boolean } = {}) {
+export function Footer() {
   return (
     <footer className="mt-20 border-t border-border">
       <div className="mx-auto flex max-w-[1240px] flex-col gap-3 px-4 py-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:px-8">
-        <p>
-          <a href={SITE.links.lyzr} target="_blank" rel="noreferrer" className="mr-1.5 inline-flex items-center gap-1.5 align-middle hover:opacity-80">
-            Built by <LyzrLogo variant="text" className="h-3 translate-y-[1px]" alt="Lyzr" />
-          </a>
-          {disclaimer && <>· {SITE.disclaimer}</>}
-        </p>
+        <p>Built by Architect</p>
         <nav className="flex flex-wrap gap-x-4 gap-y-1 sm:ml-auto" aria-label="Footer">
           <Link className="hover:text-foreground" href="/cheatsheet">Cheatsheet</Link>
           <Link className="hover:text-foreground" href="/about">About</Link>

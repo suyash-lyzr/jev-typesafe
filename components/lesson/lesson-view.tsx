@@ -17,7 +17,6 @@ import { getPreset, presetToLoad } from '@/content/presets'
 import { LESSONS, type Lesson, type LessonActions, type LessonContext } from '@/content/lessons'
 import { loadProgress, saveProgress, type LessonProgress } from '@/lib/storage'
 import { sumNouls } from '@/lib/resolvers'
-import { SITE } from '@/lib/site'
 import { useRunShortcut } from '@/components/playground/use-mod-key'
 
 /**
@@ -350,7 +349,6 @@ export function LessonView({ slug }: { slug: string }) {
           </div>
           {!progress.done && !everRanLive && <p className="mt-2 text-[11.5px] text-faint">Run the lesson live once to mark it done.</p>}
         </div>
-        <p className="mt-6 text-[11px] text-faint">{SITE.disclaimer}</p>
       </aside>
 
       <main id="main" className="flex min-h-[70vh] flex-col lg:h-[calc(100dvh-3.5rem)] lg:overflow-hidden">

@@ -160,9 +160,7 @@ export default function ComparePage() {
         </table>
       </section>
 
-      <p className="mt-8 text-xs text-muted-foreground">
-        Comparisons run from {SITE.region}. {SITE.disclaimer}
-      </p>
+      <p className="mt-8 text-xs text-muted-foreground">Comparisons run from {SITE.region}.</p>
     </PageShell>
   )
 }

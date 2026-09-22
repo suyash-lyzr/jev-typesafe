@@ -91,7 +91,7 @@ export default function PrivacyPage() {
       </section>
 
       <p className="mt-10 max-w-[70ch] text-xs text-muted-foreground">
-        {SITE.disclaimer} Read more about how the site is built and paid for on the{' '}
+        Read more about how the site is built and paid for on the{' '}
         <Link className="text-brand hover:underline" href="/about">
           about page
         </Link>

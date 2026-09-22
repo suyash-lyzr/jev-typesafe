@@ -90,7 +90,7 @@ export default function Home() {
         </section>
       </main>
 
-      <Footer disclaimer={false} />
+      <Footer />
     </>
   )
 }
