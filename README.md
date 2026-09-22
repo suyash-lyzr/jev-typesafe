@@ -47,6 +47,10 @@ off in development, and every live run is refused in production (it fails closed
      its price and that it accepts the request (Chat Completions with a strict JSON schema).
    - `COMPARE_DAY`: free comparisons per network per UTC day (default 5). A comparison
      that never reached OpenAI is handed back.
+   - `COMPARE_OWNER_TOKEN` (optional, 16+ characters): an owner pass. Open
+     `/api/owner?token=<value>` once and that browser skips the daily comparison quota
+     (the per-minute limit and the daily OpenAI dollar cap still apply). `/api/owner?off=1`
+     turns it off. Unset the variable to revoke it everywhere.
    - `ALLOWED_ORIGINS`, for extra domains serving this same app.
    - `FRAME_ANCESTORS`, to allow embedding in an iframe.
    - `NEXT_PUBLIC_ISSUES_URL`, which turns on the "Report drift" links.

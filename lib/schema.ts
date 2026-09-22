@@ -280,6 +280,8 @@ export interface CompareQuota {
   used: number
   remaining: number
   resetsAt: string
+  /** The owner pass is set: no daily limit for this browser. */
+  owner?: boolean
 }
 
 // ---------------------------------------------------------------------------

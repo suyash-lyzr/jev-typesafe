@@ -84,6 +84,7 @@ export function LlmPicker({ className, bare = false }: { className?: string; bar
 export function QuotaNote({ className }: { className?: string }) {
   const q = usePlayground((s) => s.compareQuota)
   if (!q) return null
+  if (q.owner) return <span className={cn('font-mono text-[11px] text-muted-foreground', className)}>owner · unlimited</span>
   const out = q.remaining === 0
   return (
     <span
@@ -99,6 +100,13 @@ export function QuotaNote({ className }: { className?: string }) {
 export function QuotaDots({ className }: { className?: string }) {
   const q = usePlayground((s) => s.compareQuota)
   if (!q) return null
+  if (q.owner) {
+    return (
+      <span className={cn('font-mono text-[11px] text-muted-foreground', className)} title="Owner pass: no daily comparison limit in this browser">
+        owner · unlimited
+      </span>
+    )
+  }
   const label = q.remaining === 0 ? 'No free comparisons left today — they reset at 00:00 UTC' : `${q.remaining} of ${q.limit} free comparisons left today`
   return (
     <span className={cn('inline-flex items-center gap-[3px]', className)} role="img" aria-label={label} title={label}>

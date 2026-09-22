@@ -15,7 +15,8 @@ import { callOpenAi, countEnumValues, MAX_COMPARE_ENUM_VALUES } from '@/lib/open
 import type { CompareOutcome } from '@/lib/openai-compare'
 import { jevCostUsd, llmCostUsd, llmPricingFor } from '@/lib/pricing'
 import { callerKey } from '@/lib/guards'
-import { returnQuota, takeQuota, type CompareQuota } from '@/lib/compare-quota'
+import { ownerQuota, returnQuota, takeQuota, type CompareQuota } from '@/lib/compare-quota'
+import { isOwner } from '@/lib/owner'
 import { LLM_MODELS, DEFAULT_LLM_MODEL, findLlmModel } from '@/lib/llm-models'
 import { preflight, budgetFailure, fail } from '@/lib/proxy'
 
@@ -105,7 +106,8 @@ export async function POST(req: Request) {
   // The free quota: checked after every other refusal, so a request we would
   // reject anyway never costs one.
   const caller = callerKey(req.headers)
-  const taken = await takeQuota(caller)
+  const owner = isOwner(req)
+  const taken = owner ? { ok: true, quota: ownerQuota() } : await takeQuota(caller)
   if (!taken.ok) {
     return fail(
       {
@@ -155,7 +157,7 @@ export async function POST(req: Request) {
   // Hand the comparison back when OpenAI never did any work: no key, no
   // budget, or a rejection before inference. A visitor should not lose one of
   // their five to our configuration.
-  if (!llm || (!llm.ok && !llm.mayHaveBilled)) quota = await returnQuota(caller)
+  if (!owner && (!llm || (!llm.ok && !llm.mayHaveBilled))) quota = await returnQuota(caller)
 
   function settleLlm(): Promise<unknown> {
     if (!llmReservation?.ok) return Promise.resolve()

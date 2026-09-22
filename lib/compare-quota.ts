@@ -72,3 +72,8 @@ export async function returnQuota(caller: string): Promise<CompareQuota> {
   const used = Math.max(0, await redis.decr(key))
   return shape(used)
 }
+
+/** What the owner sees: never counted, never refused. */
+export function ownerQuota(): CompareQuota {
+  return { ...shape(0), owner: true }
+}

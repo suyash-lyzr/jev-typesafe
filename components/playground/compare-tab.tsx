@@ -53,7 +53,7 @@ export function CompareTab() {
   useCompareSetup()
 
   if (!lastRun?.compare) {
-    const out = compareQuota?.remaining === 0
+    const out = !compareQuota?.owner && compareQuota?.remaining === 0
     return (
       <div className="flex flex-col items-center px-8 py-10 text-center">
         <p className="max-w-[46ch] text-sm leading-relaxed text-muted-foreground">
@@ -189,7 +189,7 @@ export function CompareTab() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="flex flex-wrap items-center gap-2.5">
-          <Button variant="outline" size="sm" disabled={running || !canRun() || compareQuota?.remaining === 0} onClick={() => run({ compare: true })}>
+          <Button variant="outline" size="sm" disabled={running || !canRun() || (!compareQuota?.owner && compareQuota?.remaining === 0)} onClick={() => run({ compare: true })}>
             Run again
           </Button>
           <LlmPicker />

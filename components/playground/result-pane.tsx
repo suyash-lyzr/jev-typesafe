@@ -20,7 +20,7 @@ import { formatUsd, perMillionRequests } from '@/lib/pricing'
 function CompareToggle() {
   const { compareOn, setCompareOn, compareQuota } = usePlayground()
   useCompareSetup()
-  const out = compareQuota?.remaining === 0
+  const out = !compareQuota?.owner && compareQuota?.remaining === 0
   // Nothing left today: the switch cannot stay on, or Run would be refused.
   React.useEffect(() => {
     if (out && compareOn) setCompareOn(false)
